@@ -2,10 +2,12 @@ server:
   port: 8082
 
 spring:
+  config:
+       import: optional:classpath:application-local.yml
   datasource:
     url: jdbc:mysql://localhost:3306/order_db
     username: root
-    password: root
+    password: YourPasswordHere
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:

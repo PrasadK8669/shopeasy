@@ -2,10 +2,12 @@ server:
   port: 8081
 
 spring:
+  config:
+       import: optional:classpath:application-local.yml
   datasource:
     url: jdbc:mysql://localhost:3306/product_db
     username: root
-    password: root
+    password: YourPasswordHere
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
