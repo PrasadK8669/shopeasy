@@ -1,0 +1,55 @@
+<div class="topbar">
+  <h2>My Orders</h2>
+  <button class="secondary" (click)="load()">Refresh</button>
+</div>
+
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+
+@if (loading()) {
+  <p>Loading...</p>
+} @else if (!error() && orders().length === 0) {
+  <div class="panel">
+    <p>You have not placed any orders yet.</p>
+    <a routerLink="/" class="btn">Browse products</a>
+  </div>
+}
+
+@for (order of orders(); track order.id) {
+  <div class="panel order">
+    <div class="order-head">
+      <div>
+        <strong>Order #{{ order.id }}</strong>
+        <span class="badge">{{ order.status }}</span>
+        <div class="meta">
+          {{ order.createdAt | date: 'medium' }} &middot; {{ order.customerName }} &middot; {{ order.customerEmail }}
+        </div>
+      </div>
+      <div class="right">
+        <div class="amount">{{ order.totalAmount | currency: 'INR' }}</div>
+        <button class="small" (click)="toggle(order.id)">
+          {{ expandedId() === order.id ? 'Hide details' : 'View details' }}
+        </button>
+      </div>
+    </div>
+
+    @if (expandedId() === order.id) {
+      <table>
+        <thead>
+          <tr><th>Product</th><th>Price</th><th>Qty</th><th>Subtotal</th></tr>
+        </thead>
+        <tbody>
+          @for (item of order.items; track item.productId) {
+            <tr>
+              <td>{{ item.productName }}</td>
+              <td>{{ item.unitPrice | currency: 'INR' }}</td>
+              <td>{{ item.quantity }}</td>
+              <td>{{ item.lineTotal | currency: 'INR' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+}
