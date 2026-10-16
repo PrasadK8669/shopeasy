@@ -1,3 +1,6 @@
+   import { RouterLink } from '@angular/router';
+   // ...
+   
 import { CurrencyPipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Product } from '../../models/product';
@@ -6,7 +9,7 @@ import { ProductService } from '../../services/product.service';
 
 @Component({
   selector: 'app-product-list',
-  imports: [CurrencyPipe],
+  imports: [CurrencyPipe,RouterLink],
   templateUrl: './product-list.html',
   styleUrl: './product-list.css',
 })

@@ -1,0 +1,47 @@
+<h2>Your Cart</h2>
+
+@if (cart.items().length === 0) {
+  <div class="empty">
+    <p>Your cart is empty.</p>
+    <a routerLink="/" class="btn">Browse products</a>
+  </div>
+} @else {
+  <table>
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Price</th>
+        <th>Quantity</th>
+        <th>Subtotal</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (item of cart.items(); track item.product.id) {
+        <tr>
+          <td>{{ item.product.name }}</td>
+          <td>{{ item.product.price | currency: 'INR' }}</td>
+          <td class="qty">
+            <button class="small" (click)="decrease(item.product.id, item.quantity)">-</button>
+            <span>{{ item.quantity }}</span>
+            <button class="small" (click)="increase(item.product.id, item.quantity)"
+                    [disabled]="item.quantity >= item.product.stock">+</button>
+          </td>
+          <td>{{ item.product.price * item.quantity | currency: 'INR' }}</td>
+          <td>
+            <button class="small danger" (click)="remove(item.product.id)">Remove</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <div class="summary">
+    <p class="total">Total: <strong>{{ cart.totalPrice() | currency: 'INR' }}</strong></p>
+    <div class="actions">
+      <button class="secondary" (click)="clear()">Clear cart</button>
+      <a routerLink="/" class="btn secondary">Continue shopping</a>
+      <a routerLink="/checkout" class="btn">Proceed to checkout</a>
+    </div>
+  </div>
+}

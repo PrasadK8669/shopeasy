@@ -1,0 +1,17 @@
+table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0; }
+th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+th { background: #f8fafc; font-size: 13px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+.qty { display: flex; align-items: center; gap: 10px; }
+.qty span { min-width: 24px; text-align: center; font-weight: 600; }
+button, .btn { padding: 9px 16px; border: none; border-radius: 6px; background: #1d4ed8; color: #fff; cursor: pointer; font-size: 14px; text-decoration: none; display: inline-block; }
+button:hover:not(:disabled), .btn:hover { background: #1e40af; }
+button:disabled { background: #94a3b8; cursor: not-allowed; }
+.small { padding: 4px 10px; }
+.secondary { background: #64748b; }
+.secondary:hover:not(:disabled) { background: #475569; }
+.danger { background: #dc2626; }
+.danger:hover:not(:disabled) { background: #b91c1c; }
+.summary { margin-top: 20px; text-align: right; }
+.total { font-size: 20px; margin: 0 0 12px; }
+.actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.empty { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 40px; text-align: center; }

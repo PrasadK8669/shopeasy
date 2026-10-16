@@ -1,5 +1,5 @@
 .topbar { display: flex; justify-content: space-between; align-items: center; }
-.cart-pill { background: #1d4ed8; color: #fff; padding: 6px 14px; border-radius: 999px; font-size: 14px; }
+.cart-pill { background: #1d4ed8; color: #fff; padding: 6px 14px; border-radius: 999px; font-size: 14px; text-decoration: none; }
 .search-bar { display: flex; gap: 8px; margin: 16px 0; }
 .search-bar input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
 button { padding: 9px 16px; border: none; border-radius: 6px; background: #1d4ed8; color: #fff; cursor: pointer; font-size: 14px; }

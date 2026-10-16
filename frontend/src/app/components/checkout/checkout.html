@@ -1,0 +1,71 @@
+@if (placedOrder(); as order) {
+  <div class="panel success">
+    <h2>Order placed!</h2>
+    <p>Your order number is <strong>#{{ order.id }}</strong>.</p>
+
+    <table>
+      <thead>
+        <tr><th>Product</th><th>Price</th><th>Qty</th><th>Subtotal</th></tr>
+      </thead>
+      <tbody>
+        @for (item of order.items; track item.productId) {
+          <tr>
+            <td>{{ item.productName }}</td>
+            <td>{{ item.unitPrice | currency: 'INR' }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.lineTotal | currency: 'INR' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <p class="total">Total: <strong>{{ order.totalAmount | currency: 'INR' }}</strong></p>
+    <a routerLink="/" class="btn">Continue shopping</a>
+  </div>
+} @else if (cart.items().length === 0) {
+  <div class="panel">
+    <p>Your cart is empty, so there is nothing to check out.</p>
+    <a routerLink="/" class="btn">Browse products</a>
+  </div>
+} @else {
+  <h2>Checkout</h2>
+
+  <div class="layout">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="panel">
+      <label for="customerName">Full name</label>
+      <input id="customerName" type="text" formControlName="customerName" />
+      @if (name.invalid && name.touched) {
+        <small class="field-error">Please enter your name (at least 2 characters).</small>
+      }
+
+      <label for="customerEmail">Email</label>
+      <input id="customerEmail" type="email" formControlName="customerEmail" />
+      @if (email.invalid && email.touched) {
+        <small class="field-error">Please enter a valid email address.</small>
+      }
+
+      @if (error()) {
+        <p class="error">{{ error() }}</p>
+      }
+
+      <button type="submit" [disabled]="submitting()">
+        {{ submitting() ? 'Placing order...' : 'Place order' }}
+      </button>
+      <a routerLink="/cart" class="back">Back to cart</a>
+    </form>
+
+    <div class="panel">
+      <h3>Order summary</h3>
+      @for (item of cart.items(); track item.product.id) {
+        <div class="line">
+          <span>{{ item.product.name }} x {{ item.quantity }}</span>
+          <span>{{ item.product.price * item.quantity | currency: 'INR' }}</span>
+        </div>
+      }
+      <div class="line total">
+        <span>Total</span>
+        <span>{{ cart.totalPrice() | currency: 'INR' }}</span>
+      </div>
+    </div>
+  </div>
+}
