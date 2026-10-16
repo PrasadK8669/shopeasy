@@ -1,0 +1,49 @@
+<div class="topbar">
+  <h2>Products</h2>
+  <span class="cart-pill">Cart: {{ cart.totalItems() }}</span>
+</div>
+
+<div class="search-bar">
+  <input #box type="text" placeholder="Search products..." (keyup.enter)="onSearch(box.value)" />
+  <button (click)="onSearch(box.value)">Search</button>
+  @if (search()) {
+    <button class="secondary" (click)="clear(box)">Clear</button>
+  }
+</div>
+
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+
+@if (loading()) {
+  <p>Loading...</p>
+} @else if (!error() && products().length === 0) {
+  <p>No products found.</p>
+}
+
+<div class="grid">
+  @for (p of products(); track p.id) {
+    <div class="card">
+      <span class="category">{{ p.category }}</span>
+      <h3>{{ p.name }}</h3>
+      <p class="desc">{{ p.description }}</p>
+      <p class="price">{{ p.price | currency: 'INR' }}</p>
+      <p class="stock" [class.low]="p.stock <= 5">
+        @if (p.stock === 0) {
+          Out of stock
+        } @else {
+          {{ p.stock }} in stock
+        }
+      </p>
+      <button (click)="addToCart(p)" [disabled]="p.stock === 0">Add to cart</button>
+    </div>
+  }
+</div>
+
+@if (totalPages() > 1) {
+  <div class="pager">
+    <button (click)="prev()" [disabled]="page() === 0">Previous</button>
+    <span>Page {{ page() + 1 }} of {{ totalPages() }}</span>
+    <button (click)="next()" [disabled]="page() >= totalPages() - 1">Next</button>
+  </div>
+}
