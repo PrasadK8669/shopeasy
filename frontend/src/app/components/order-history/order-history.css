@@ -1,16 +1,17 @@
-.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; margin-bottom: 14px; }
+.head-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.alert { margin-bottom: 20px; }
+.skeleton { height: 88px; margin-bottom: 14px; }
+
+.order { margin-bottom: 14px; }
 .order-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
-.meta { color: #64748b; font-size: 13px; margin-top: 4px; }
-.badge { background: #dcfce7; color: #166534; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; margin-left: 10px; }
-.right { text-align: right; }
-.amount { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
-th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
-th { background: #f8fafc; color: #64748b; font-size: 12px; text-transform: uppercase; }
-button, .btn { padding: 9px 16px; border: none; border-radius: 6px; background: #1d4ed8; color: #fff; cursor: pointer; font-size: 14px; text-decoration: none; display: inline-block; }
-button:hover, .btn:hover { background: #1e40af; }
-.small { padding: 5px 12px; font-size: 13px; }
-.secondary { background: #64748b; }
-.secondary:hover { background: #475569; }
-.error { color: #dc2626; background: #fee2e2; padding: 10px; border-radius: 6px; }
+.order-main { display: grid; gap: 2px; }
+.title { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.pill { background: #dcf4e9; color: var(--ok); font-size: 13px; font-weight: 600; padding: 2px 10px; border-radius: 999px; }
+.pill.cancelled { background: #eceef4; color: var(--muted); }
+.order-side { display: grid; justify-items: end; gap: 4px; }
+.amount { font-family: var(--font-display); font-weight: 700; font-size: 20px; }
+.order .table { margin-top: 16px; }
+
+@media (max-width: 600px) {
+  .order-side { justify-items: start; }
+}

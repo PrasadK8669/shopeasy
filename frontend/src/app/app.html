@@ -1,1 +1,31 @@
-<router-outlet />
+<header class="topbar">
+  <div class="topbar-inner">
+    <a routerLink="/" class="brand">
+      <span class="mark"></span>
+      ShopEasy
+    </a>
+
+    <nav class="links">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Shop</a>
+      <a routerLink="/orders" routerLinkActive="active">My orders</a>
+      <a routerLink="/cart" routerLinkActive="active">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 7h12l-1 13H7L6 7z" />
+          <path d="M9 7a3 3 0 0 1 6 0" />
+        </svg>
+        Cart
+        @if (cart.totalItems() > 0) {
+          <span class="count">{{ cart.totalItems() }}</span>
+        }
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <router-outlet />
+</main>
+
+<footer class="footer">
+  ShopEasy is a demo project built with Angular, Spring Boot and MySQL.
+</footer>

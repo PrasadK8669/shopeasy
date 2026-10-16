@@ -1,71 +1,93 @@
 @if (placedOrder(); as order) {
   <div class="panel success">
-    <h2>Order placed!</h2>
-    <p>Your order number is <strong>#{{ order.id }}</strong>.</p>
+    <div class="check" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 13l4 4L19 7" />
+      </svg>
+    </div>
+    <h1>Order #{{ order.id }} is placed</h1>
+    <p class="muted">Thanks, {{ order.customerName }}. Your order is saved and stock has been updated.</p>
 
-    <table>
+    <table class="table">
       <thead>
-        <tr><th>Product</th><th>Price</th><th>Qty</th><th>Subtotal</th></tr>
+        <tr>
+          <th>Product</th>
+          <th class="num">Price</th>
+          <th class="num">Qty</th>
+          <th class="num">Subtotal</th>
+        </tr>
       </thead>
       <tbody>
         @for (item of order.items; track item.productId) {
           <tr>
             <td>{{ item.productName }}</td>
-            <td>{{ item.unitPrice | currency: 'INR' }}</td>
-            <td>{{ item.quantity }}</td>
-            <td>{{ item.lineTotal | currency: 'INR' }}</td>
+            <td class="num">{{ item.unitPrice | currency: 'INR' }}</td>
+            <td class="num">{{ item.quantity }}</td>
+            <td class="num">{{ item.lineTotal | currency: 'INR' }}</td>
           </tr>
         }
       </tbody>
     </table>
 
-    <p class="total">Total: <strong>{{ order.totalAmount | currency: 'INR' }}</strong></p>
-    <a routerLink="/" class="btn">Continue shopping</a>
+    <div class="line total"><span>Total</span><span>{{ order.totalAmount | currency: 'INR' }}</span></div>
+
+    <div class="actions">
+      <a routerLink="/orders" class="btn btn-primary">View my orders</a>
+      <a routerLink="/" class="btn btn-ghost">Continue shopping</a>
+    </div>
   </div>
 } @else if (cart.items().length === 0) {
-  <div class="panel">
-    <p>Your cart is empty, so there is nothing to check out.</p>
-    <a routerLink="/" class="btn">Browse products</a>
+  <div class="panel empty">
+    <h3>Nothing to check out</h3>
+    <p class="muted">Your cart is empty. Add some items first.</p>
+    <a routerLink="/" class="btn btn-primary">Browse products</a>
   </div>
 } @else {
-  <h2>Checkout</h2>
+  <div class="page-head">
+    <h1>Checkout</h1>
+  </div>
 
   <div class="layout">
     <form [formGroup]="form" (ngSubmit)="submit()" class="panel">
-      <label for="customerName">Full name</label>
-      <input id="customerName" type="text" formControlName="customerName" />
-      @if (name.invalid && name.touched) {
-        <small class="field-error">Please enter your name (at least 2 characters).</small>
-      }
+      <h3>Contact details</h3>
 
-      <label for="customerEmail">Email</label>
-      <input id="customerEmail" type="email" formControlName="customerEmail" />
-      @if (email.invalid && email.touched) {
-        <small class="field-error">Please enter a valid email address.</small>
-      }
+      <div class="field">
+        <label for="customerName">Full name</label>
+        <input id="customerName" class="input" type="text" formControlName="customerName" autocomplete="name" />
+        @if (name.invalid && name.touched) {
+          <span class="field-error">Enter your name (at least 2 characters).</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="customerEmail">Email</label>
+        <input id="customerEmail" class="input" type="email" formControlName="customerEmail" autocomplete="email" />
+        @if (email.invalid && email.touched) {
+          <span class="field-error">Enter a valid email address, like name@example.com.</span>
+        }
+      </div>
 
       @if (error()) {
-        <p class="error">{{ error() }}</p>
+        <div class="alert alert-error" role="alert">{{ error() }}</div>
       }
 
-      <button type="submit" [disabled]="submitting()">
-        {{ submitting() ? 'Placing order...' : 'Place order' }}
-      </button>
-      <a routerLink="/cart" class="back">Back to cart</a>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="submitting()">
+          {{ submitting() ? 'Placing order...' : 'Place order' }}
+        </button>
+        <a routerLink="/cart" class="btn btn-ghost">Back to cart</a>
+      </div>
     </form>
 
-    <div class="panel">
+    <aside class="panel summary">
       <h3>Order summary</h3>
       @for (item of cart.items(); track item.product.id) {
         <div class="line">
-          <span>{{ item.product.name }} x {{ item.quantity }}</span>
+          <span>{{ item.product.name }} &times; {{ item.quantity }}</span>
           <span>{{ item.product.price * item.quantity | currency: 'INR' }}</span>
         </div>
       }
-      <div class="line total">
-        <span>Total</span>
-        <span>{{ cart.totalPrice() | currency: 'INR' }}</span>
-      </div>
-    </div>
+      <div class="line total"><span>Total</span><span>{{ cart.totalPrice() | currency: 'INR' }}</span></div>
+    </aside>
   </div>
 }

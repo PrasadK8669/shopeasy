@@ -1,47 +1,49 @@
-<h2>Your Cart</h2>
+<div class="page-head">
+  <h1>Your cart</h1>
+</div>
 
 @if (cart.items().length === 0) {
-  <div class="empty">
-    <p>Your cart is empty.</p>
-    <a routerLink="/" class="btn">Browse products</a>
+  <div class="panel empty">
+    <h3>Your cart is empty</h3>
+    <p class="muted">Add something from the shop and it will show up here.</p>
+    <a routerLink="/" class="btn btn-primary">Browse products</a>
   </div>
 } @else {
-  <table>
-    <thead>
-      <tr>
-        <th>Product</th>
-        <th>Price</th>
-        <th>Quantity</th>
-        <th>Subtotal</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
+  <div class="layout">
+    <div class="panel items">
       @for (item of cart.items(); track item.product.id) {
-        <tr>
-          <td>{{ item.product.name }}</td>
-          <td>{{ item.product.price | currency: 'INR' }}</td>
-          <td class="qty">
-            <button class="small" (click)="decrease(item.product.id, item.quantity)">-</button>
+        <div class="row">
+          <div class="tile mini" [attr.data-cat]="item.product.category" aria-hidden="true">
+            {{ item.product.name.charAt(0) }}
+          </div>
+          <div class="info">
+            <strong>{{ item.product.name }}</strong>
+            <span class="muted">{{ item.product.price | currency: 'INR' }} each</span>
+          </div>
+          <div class="stepper">
+            <button class="btn btn-ghost btn-sm" (click)="decrease(item.product.id, item.quantity)"
+                    [attr.aria-label]="'Decrease quantity of ' + item.product.name">&minus;</button>
             <span>{{ item.quantity }}</span>
-            <button class="small" (click)="increase(item.product.id, item.quantity)"
-                    [disabled]="item.quantity >= item.product.stock">+</button>
-          </td>
-          <td>{{ item.product.price * item.quantity | currency: 'INR' }}</td>
-          <td>
-            <button class="small danger" (click)="remove(item.product.id)">Remove</button>
-          </td>
-        </tr>
+            <button class="btn btn-ghost btn-sm" (click)="increase(item.product.id, item.quantity)"
+                    [disabled]="item.quantity >= item.product.stock"
+                    [attr.aria-label]="'Increase quantity of ' + item.product.name">+</button>
+          </div>
+          <span class="line-total">{{ item.product.price * item.quantity | currency: 'INR' }}</span>
+          <button class="btn btn-text btn-sm" (click)="remove(item.product.id)">Remove</button>
+        </div>
       }
-    </tbody>
-  </table>
-
-  <div class="summary">
-    <p class="total">Total: <strong>{{ cart.totalPrice() | currency: 'INR' }}</strong></p>
-    <div class="actions">
-      <button class="secondary" (click)="clear()">Clear cart</button>
-      <a routerLink="/" class="btn secondary">Continue shopping</a>
-      <a routerLink="/checkout" class="btn">Proceed to checkout</a>
+      <div class="items-foot">
+        <button class="btn btn-text btn-sm" (click)="clear()">Clear cart</button>
+      </div>
     </div>
+
+    <aside class="panel summary">
+      <h3>Order summary</h3>
+      <div class="line"><span class="muted">Items</span><span>{{ cart.totalItems() }}</span></div>
+      <div class="line total"><span>Total</span><span>{{ cart.totalPrice() | currency: 'INR' }}</span></div>
+      <p class="note muted">The final price is confirmed when you place the order.</p>
+      <a routerLink="/checkout" class="btn btn-primary full">Go to checkout</a>
+      <a routerLink="/" class="btn btn-ghost full">Continue shopping</a>
+    </aside>
   </div>
 }

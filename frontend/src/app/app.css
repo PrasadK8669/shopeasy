@@ -1,3 +1,26 @@
-body { font-family: system-ui, sans-serif; margin: 0; background: #f1f5f9; color: #0f172a; }
-
-app-root { display: block; max-width: 1100px; margin: 0 auto; padding: 20px; }
+.topbar { position: sticky; top: 0; z-index: 10; background: var(--surface); border-bottom: 1px solid var(--line); }
+.topbar-inner {
+  max-width: 1120px; margin: 0 auto; padding: 12px 20px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-display); font-weight: 700; font-size: 20px;
+  color: var(--ink); text-decoration: none;
+}
+.mark { position: relative; width: 22px; height: 22px; border-radius: 6px; background: var(--brand); }
+.mark::after { content: ''; position: absolute; right: 4px; bottom: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--ink); }
+.links { display: flex; align-items: center; gap: 4px; }
+.links a {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: var(--radius-sm);
+  color: var(--muted); text-decoration: none; font-weight: 500;
+}
+.links a:hover { color: var(--ink); background: var(--paper); }
+.links a.active { color: var(--ink); background: var(--paper); font-weight: 600; box-shadow: inset 0 -2px 0 var(--brand); }
+.count {
+  display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px;
+  border-radius: 999px; background: var(--brand); color: var(--ink); font-size: 12px; font-weight: 700;
+}
+.container { max-width: 1120px; margin: 0 auto; padding: 28px 20px 48px; }
+.footer { border-top: 1px solid var(--line); padding: 20px; text-align: center; color: var(--muted); font-size: 13px; }

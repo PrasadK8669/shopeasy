@@ -1,49 +1,99 @@
-<div class="topbar">
-  <h2>Products</h2>
-    <a routerLink="/cart" class="cart-pill">Cart: {{ cart.totalItems() }}</a>
+<div class="page-head">
+  <h1>Shop</h1>
+  <p>Browse what is in stock. Availability updates as soon as an order is placed.</p>
 </div>
 
-<div class="search-bar">
-  <input #box type="text" placeholder="Search products..." (keyup.enter)="onSearch(box.value)" />
-  <button (click)="onSearch(box.value)">Search</button>
+<div class="search" role="search">
+  <div class="search-field">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" />
+      <path d="M20 20l-3.5-3.5" />
+    </svg>
+    <input #box class="input" type="text" placeholder="Search by product name"
+           aria-label="Search products" (keyup.enter)="onSearch(box.value)" />
+  </div>
+  <button class="btn btn-primary" (click)="onSearch(box.value)">Search</button>
   @if (search()) {
-    <button class="secondary" (click)="clear(box)">Clear</button>
+    <button class="btn btn-ghost" (click)="clear(box)">Clear</button>
   }
 </div>
 
 @if (error()) {
-  <p class="error">{{ error() }}</p>
+  <div class="alert alert-error" role="alert">
+    <span>{{ error() }}</span>
+    <button class="btn btn-ghost btn-sm" (click)="load()">Try again</button>
+  </div>
 }
 
-@if (loading()) {
-  <p>Loading...</p>
+@if (loading() && products().length === 0) {
+  <div class="grid">
+    @for (n of [1, 2, 3, 4]; track n) {
+      <div class="skeleton"></div>
+    }
+  </div>
 } @else if (!error() && products().length === 0) {
-  <p>No products found.</p>
+  <div class="panel empty">
+    @if (search()) {
+      <h3>No products match "{{ search() }}"</h3>
+      <p class="muted">Try a shorter word, or clear the search to see everything.</p>
+    } @else {
+      <h3>No products yet</h3>
+      <p class="muted">Add products through Product Service and they will appear here.</p>
+    }
+  </div>
 }
 
-<div class="grid">
-  @for (p of products(); track p.id) {
-    <div class="card">
-      <span class="category">{{ p.category }}</span>
-      <h3>{{ p.name }}</h3>
-      <p class="desc">{{ p.description }}</p>
-      <p class="price">{{ p.price | currency: 'INR' }}</p>
-      <p class="stock" [class.low]="p.stock <= 5">
-        @if (p.stock === 0) {
-          Out of stock
-        } @else {
-          {{ p.stock }} in stock
-        }
-      </p>
-      <button (click)="addToCart(p)" [disabled]="p.stock === 0">Add to cart</button>
-    </div>
-  }
-</div>
+@if (products().length > 0) {
+  <p class="result-line">
+    @if (search()) {
+      Results for "{{ search() }}"
+    } @else {
+      All products
+    }
+  </p>
+
+  <div class="grid">
+    @for (p of products(); track p.id) {
+      <article class="card">
+        <div class="tile" [attr.data-cat]="p.category" aria-hidden="true">{{ p.name.charAt(0) }}</div>
+        <div class="card-body">
+          <span class="category">{{ p.category }}</span>
+          <h3>{{ p.name }}</h3>
+          <p class="desc">{{ p.description }}</p>
+          <div class="price-row">
+            <span class="price">{{ p.price | currency: 'INR' }}</span>
+            <span class="stock" [class.low]="p.stock > 0 && p.stock <= 5" [class.out]="p.stock === 0">
+              @if (p.stock === 0) {
+                Out of stock
+              } @else if (p.stock <= 5) {
+                Only {{ p.stock }} left
+              } @else {
+                In stock
+              }
+            </span>
+          </div>
+          <button class="btn btn-primary full" (click)="addToCart(p)"
+                  [disabled]="p.stock === 0 || inCart(p.id) >= p.stock">
+            @if (p.stock === 0) {
+              Out of stock
+            } @else if (inCart(p.id) >= p.stock) {
+              Max in cart
+            } @else if (addedId() === p.id) {
+              Added to cart
+            } @else {
+              Add to cart
+            }
+          </button>
+        </div>
+      </article>
+    }
+  </div>
+}
 
 @if (totalPages() > 1) {
   <div class="pager">
-    <button (click)="prev()" [disabled]="page() === 0">Previous</button>
+    <button class="btn btn-ghost" (click)="prev()" [disabled]="page() === 0">Previous</button>
     <span>Page {{ page() + 1 }} of {{ totalPages() }}</span>
-    <button (click)="next()" [disabled]="page() >= totalPages() - 1">Next</button>
+    <button class="btn btn-ghost" (click)="next()" [disabled]="page() >= totalPages() - 1">Next</button>
   </div>
 }

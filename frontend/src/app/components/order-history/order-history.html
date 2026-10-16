@@ -1,55 +1,74 @@
-<div class="topbar">
-  <h2>My Orders</h2>
-  <button class="secondary" (click)="load()">Refresh</button>
+<div class="page-head head-row">
+  <div>
+    <h1>My orders</h1>
+    <p>Your most recent orders appear first.</p>
+  </div>
+  <button class="btn btn-ghost" (click)="load()">Refresh</button>
 </div>
 
 @if (error()) {
-  <p class="error">{{ error() }}</p>
+  <div class="alert alert-error" role="alert">
+    <span>{{ error() }}</span>
+    <button class="btn btn-ghost btn-sm" (click)="load()">Try again</button>
+  </div>
 }
 
-@if (loading()) {
-  <p>Loading...</p>
+@if (loading() && orders().length === 0) {
+  <div class="skeleton"></div>
+  <div class="skeleton"></div>
 } @else if (!error() && orders().length === 0) {
-  <div class="panel">
-    <p>You have not placed any orders yet.</p>
-    <a routerLink="/" class="btn">Browse products</a>
+  <div class="panel empty">
+    <h3>No orders yet</h3>
+    <p class="muted">Orders you place will show up here.</p>
+    <a routerLink="/" class="btn btn-primary">Start shopping</a>
   </div>
 }
 
 @for (order of orders(); track order.id) {
-  <div class="panel order">
+  <article class="panel order">
     <div class="order-head">
-      <div>
-        <strong>Order #{{ order.id }}</strong>
-        <span class="badge">{{ order.status }}</span>
-        <div class="meta">
-          {{ order.createdAt | date: 'medium' }} &middot; {{ order.customerName }} &middot; {{ order.customerEmail }}
+      <div class="order-main">
+        <div class="title">
+          <h3>Order #{{ order.id }}</h3>
+          <span class="pill" [class.cancelled]="order.status !== 'PLACED'">
+            {{ order.status === 'PLACED' ? 'Placed' : 'Cancelled' }}
+          </span>
         </div>
+        <p class="muted">{{ order.createdAt | date: 'd MMM y, h:mm a' }}</p>
+        <p class="muted">{{ order.customerName }} ({{ order.customerEmail }})</p>
       </div>
-      <div class="right">
-        <div class="amount">{{ order.totalAmount | currency: 'INR' }}</div>
-        <button class="small" (click)="toggle(order.id)">
+
+      <div class="order-side">
+        <span class="amount">{{ order.totalAmount | currency: 'INR' }}</span>
+        <span class="muted">{{ order.items.length }} {{ order.items.length === 1 ? 'item' : 'items' }}</span>
+        <button class="btn btn-ghost btn-sm" (click)="toggle(order.id)"
+                [attr.aria-expanded]="expandedId() === order.id">
           {{ expandedId() === order.id ? 'Hide details' : 'View details' }}
         </button>
       </div>
     </div>
 
     @if (expandedId() === order.id) {
-      <table>
+      <table class="table">
         <thead>
-          <tr><th>Product</th><th>Price</th><th>Qty</th><th>Subtotal</th></tr>
+          <tr>
+            <th>Product</th>
+            <th class="num">Price</th>
+            <th class="num">Qty</th>
+            <th class="num">Subtotal</th>
+          </tr>
         </thead>
         <tbody>
           @for (item of order.items; track item.productId) {
             <tr>
               <td>{{ item.productName }}</td>
-              <td>{{ item.unitPrice | currency: 'INR' }}</td>
-              <td>{{ item.quantity }}</td>
-              <td>{{ item.lineTotal | currency: 'INR' }}</td>
+              <td class="num">{{ item.unitPrice | currency: 'INR' }}</td>
+              <td class="num">{{ item.quantity }}</td>
+              <td class="num">{{ item.lineTotal | currency: 'INR' }}</td>
             </tr>
           }
         </tbody>
       </table>
     }
-  </div>
+  </article>
 }

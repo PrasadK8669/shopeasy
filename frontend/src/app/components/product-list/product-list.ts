@@ -1,6 +1,3 @@
-   import { RouterLink } from '@angular/router';
-   // ...
-   
 import { CurrencyPipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Product } from '../../models/product';
@@ -9,13 +6,13 @@ import { ProductService } from '../../services/product.service';
 
 @Component({
   selector: 'app-product-list',
-  imports: [CurrencyPipe,RouterLink],
+  imports: [CurrencyPipe],
   templateUrl: './product-list.html',
   styleUrl: './product-list.css',
 })
 export class ProductList implements OnInit {
   private productService = inject(ProductService);
-  protected cart = inject(CartService);
+  private cart = inject(CartService);
 
   products = signal<Product[]>([]);
   page = signal(0);
@@ -23,6 +20,7 @@ export class ProductList implements OnInit {
   search = signal('');
   loading = signal(false);
   error = signal('');
+  addedId = signal<number | null>(null);
   readonly pageSize = 8;
 
   ngOnInit(): void {
@@ -39,7 +37,9 @@ export class ProductList implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Could not load products. Is Product Service running on port 8081?');
+        this.error.set(
+          'We could not load the products. Check that Product Service is running on port 8081, then try again.'
+        );
         this.loading.set(false);
       },
     });
@@ -70,7 +70,17 @@ export class ProductList implements OnInit {
     }
   }
 
+  inCart(productId: number): number {
+    return this.cart.items().find(i => i.product.id === productId)?.quantity ?? 0;
+  }
+
   addToCart(product: Product): void {
     this.cart.add(product);
+    this.addedId.set(product.id);
+    setTimeout(() => {
+      if (this.addedId() === product.id) {
+        this.addedId.set(null);
+      }
+    }, 1200);
   }
 }
