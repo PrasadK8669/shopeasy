@@ -5,6 +5,7 @@ export interface Product {
   price: number;
   stock: number;
   category: string;
+  imageUrl?: string | null;
 }
 
 // Matches the "Page" JSON that Spring returns

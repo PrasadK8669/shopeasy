@@ -44,7 +44,9 @@ public class ProductService {
         existing.setPrice(updated.getPrice());
         existing.setStock(updated.getStock());
         existing.setCategory(updated.getCategory());
+        existing.setImageUrl(updated.getImageUrl());
         return productRepository.save(existing);
+
     }
 
     public void delete(Long id) {
@@ -68,4 +70,5 @@ public class ProductService {
         product.setStock(product.getStock() - quantity);
         return productRepository.save(product);
     }
+    
 }

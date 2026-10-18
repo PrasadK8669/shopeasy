@@ -23,4 +23,34 @@
   border-radius: 999px; background: var(--brand); color: var(--ink); font-size: 12px; font-weight: 700;
 }
 .container { max-width: 1120px; margin: 0 auto; padding: 28px 20px 48px; }
-.footer { border-top: 1px solid var(--line); padding: 20px; text-align: center; color: var(--muted); font-size: 13px; }
+.footer {
+  border-top: 1px solid var(--line);
+  padding: 32px 20px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.footer {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+@media (max-width: 700px) {
+  .footer {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 16px;
+  }
+}
+.footer p {
+  margin: 0;
+}
+.footer a {
+  color: var(--muted);
+  text-decoration: none;
+}
+.footer a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+}

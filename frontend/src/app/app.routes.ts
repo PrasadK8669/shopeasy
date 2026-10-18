@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { Cart } from './components/cart/cart';
 import { Checkout } from './components/checkout/checkout';
 import { OrderHistory } from './components/order-history/order-history';
+import { ProductDetail } from './components/product-detail/product-detail';
 import { ProductList } from './components/product-list/product-list';
 
 export const routes: Routes = [
@@ -9,5 +10,6 @@ export const routes: Routes = [
   { path: 'cart', component: Cart },
   { path: 'checkout', component: Checkout },
   { path: 'orders', component: OrderHistory },
+  { path: 'products/:id', component: ProductDetail },
   { path: '**', redirectTo: '' },
 ];

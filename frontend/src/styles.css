@@ -77,11 +77,12 @@ a { color: var(--indigo); }
 .alert { padding: 12px 14px; border-radius: var(--radius-sm); font-size: 14px; }
 .alert-error { background: var(--danger-bg); color: var(--danger); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .empty { text-align: center; padding: 48px 20px; display: grid; gap: 10px; justify-items: center; }
+.empty svg { width: 96px; height: 96px; margin-bottom: 4px; }
 
 /* Tables */
 .table { width: 100%; border-collapse: collapse; }
-.table th { text-align: left; font-weight: 500; color: var(--muted); font-size: 13px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
-.table td { padding: 12px 10px; border-bottom: 1px solid var(--line); }
+.table th { text-align: left; font-weight: 500; color: var(--muted); font-size: 13px; padding: 8px 10px; border-bottom: 1px solid var(--line); overflow-wrap: break-word; }
+.table td { padding: 12px 10px; border-bottom: 1px solid var(--line); overflow-wrap: break-word; }
 .table tr:last-child td { border-bottom: none; }
 .table .num { text-align: right; font-variant-numeric: tabular-nums; }
 
@@ -95,7 +96,7 @@ a { color: var(--indigo); }
 /* Two-column layout used by cart and checkout */
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
 .summary { position: sticky; top: 84px; display: grid; gap: 12px; }
-.line { display: flex; justify-content: space-between; gap: 12px; }
+.line { display: flex; justify-content: space-between; gap: 12px; overflow-wrap: break-word; }
 .line.total { font-family: var(--font-display); font-size: 20px; font-weight: 700; padding-top: 12px; border-top: 1px solid var(--line); }
 @media (max-width: 860px) {
   .layout { grid-template-columns: 1fr; }

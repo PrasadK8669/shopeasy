@@ -1,12 +1,13 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Product } from '../../models/product';
 import { CartService } from '../../services/cart.service';
 import { ProductService } from '../../services/product.service';
 
 @Component({
   selector: 'app-product-list',
-  imports: [CurrencyPipe],
+  imports: [CurrencyPipe, RouterLink],
   templateUrl: './product-list.html',
   styleUrl: './product-list.css',
 })
@@ -21,6 +22,7 @@ export class ProductList implements OnInit {
   loading = signal(false);
   error = signal('');
   addedId = signal<number | null>(null);
+  brokenImages = signal<number[]>([]);
   readonly pageSize = 8;
 
   ngOnInit(): void {
@@ -67,6 +69,12 @@ export class ProductList implements OnInit {
     if (this.page() < this.totalPages() - 1) {
       this.page.update(p => p + 1);
       this.load();
+    }
+  }
+
+  markBroken(id: number): void {
+    if (!this.brokenImages().includes(id)) {
+      this.brokenImages.update(ids => [...ids, id]);
     }
   }
 
