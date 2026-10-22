@@ -1,56 +1,44 @@
-.topbar { position: sticky; top: 0; z-index: 10; background: var(--surface); border-bottom: 1px solid var(--line); }
-.topbar-inner {
-  max-width: 1120px; margin: 0 auto; padding: 12px 20px;
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
-}
+.topbar { position: sticky; top: 0; z-index: 10; background: var(--bg); box-shadow: 0 8px 16px -8px var(--shadow-dark); }
+.topbar-inner { max-width: 1200px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 20px; }
+
 .brand {
-  display: flex; align-items: center; gap: 10px;
-  font-family: var(--font-display); font-weight: 700; font-size: 20px;
+  display: flex; align-items: center; gap: 12px; margin-right: auto;
+  font-family: var(--font-display); font-weight: 700; font-size: 21px;
   color: var(--ink); text-decoration: none;
 }
-.mark { position: relative; width: 22px; height: 22px; border-radius: 6px; background: var(--brand); }
-.mark::after { content: ''; position: absolute; right: 4px; bottom: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--ink); }
-.links { display: flex; align-items: center; gap: 4px; }
-.links a {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 8px 12px; border-radius: var(--radius-sm);
-  color: var(--muted); text-decoration: none; font-weight: 500;
+.logo { width: 36px; height: 36px; border-radius: 10px; box-shadow: var(--raised-sm); }
+
+.links { display: flex; gap: 6px; }
+.links a { padding: 9px 16px; border-radius: var(--radius-sm); color: var(--muted); font-weight: 500; text-decoration: none; }
+.links a:hover { color: var(--ink); }
+.links a.active { color: var(--ink); font-weight: 600; box-shadow: var(--inset-sm); }
+
+.icon-btn {
+  position: relative; display: grid; place-items: center; width: 44px; height: 44px;
+  border-radius: 50%; background: var(--bg); color: var(--ink); text-decoration: none;
+  box-shadow: var(--raised-sm); transition: box-shadow 0.15s;
 }
-.links a:hover { color: var(--ink); background: var(--paper); }
-.links a.active { color: var(--ink); background: var(--paper); font-weight: 600; box-shadow: inset 0 -2px 0 var(--brand); }
+.icon-btn:hover { box-shadow: var(--raised); }
+.icon-btn.active { box-shadow: var(--inset-sm); }
 .count {
-  display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px;
-  border-radius: 999px; background: var(--brand); color: var(--ink); font-size: 12px; font-weight: 700;
+  position: absolute; top: -4px; right: -4px; display: grid; place-items: center;
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+  background: var(--brand); color: var(--ink); font-size: 12px; font-weight: 700;
+  box-shadow: 2px 2px 4px var(--shadow-dark);
 }
-.container { max-width: 1120px; margin: 0 auto; padding: 28px 20px 48px; }
-.footer {
-  border-top: 1px solid var(--line);
-  padding: 32px 20px;
-  color: var(--muted);
-  font-size: 13px;
-}
-.footer {
-  max-width: 1120px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-@media (max-width: 700px) {
-  .footer {
-    grid-template-columns: 1fr;
-    text-align: center;
-    gap: 16px;
-  }
-}
-.footer p {
-  margin: 0;
-}
-.footer a {
-  color: var(--muted);
-  text-decoration: none;
-}
-.footer a:hover {
-  color: var(--ink);
-  text-decoration: underline;
+
+.container { max-width: 1200px; margin: 0 auto; padding: 32px 24px 56px; }
+
+.footer { margin-top: 24px; box-shadow: inset 0 8px 10px -8px var(--shadow-dark); }
+.footer-inner { max-width: 1200px; margin: 0 auto; padding: 36px 24px; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 32px; }
+.footer p { color: var(--muted); font-size: 14px; margin-top: 8px; }
+.footer-links { display: flex; flex-direction: column; gap: 10px; }
+.footer a { color: var(--ink); text-decoration: none; font-weight: 500; }
+.footer a:hover { text-decoration: underline; }
+.footer-credit a { display: inline-block; margin-top: 10px; color: var(--indigo); }
+
+@media (max-width: 720px) {
+  .topbar-inner { flex-wrap: wrap; gap: 14px; }
+  .links { order: 3; width: 100%; justify-content: center; }
+  .footer-inner { grid-template-columns: 1fr; }
 }

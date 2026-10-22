@@ -1,24 +1,32 @@
 <header class="topbar">
   <div class="topbar-inner">
     <a routerLink="/" class="brand">
-      <span class="mark"></span>
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="9" fill="#f5a524" />
+        <path d="M9 12h14l-1.2 11a2 2 0 0 1-2 1.8h-7.6a2 2 0 0 1-2-1.8L9 12z" fill="#1b1f3b" />
+        <path d="M12.5 12v-1a3.5 3.5 0 0 1 7 0v1" fill="none" stroke="#1b1f3b" stroke-width="2" stroke-linecap="round" />
+      </svg>
       ShopEasy
     </a>
 
-    <nav class="links">
+    <nav class="links" aria-label="Main">
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Shop</a>
       <a routerLink="/orders" routerLinkActive="active">My orders</a>
-      <a routerLink="/cart" routerLinkActive="active">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M6 7h12l-1 13H7L6 7z" />
-          <path d="M9 7a3 3 0 0 1 6 0" />
-        </svg>
-        Cart
-        @if (cart.totalItems() > 0) {
-          <span class="count">{{ cart.totalItems() }}</span>
-        }
-      </a>
     </nav>
+
+    <a routerLink="/cart" routerLinkActive="active" class="icon-btn"
+       [attr.aria-label]="'Cart, ' + cart.totalItems() + ' items'">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="9" cy="20" r="1.5" />
+        <circle cx="18" cy="20" r="1.5" />
+        <path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6" />
+      </svg>
+      @if (cart.totalItems() > 0) {
+        <span class="count">{{ cart.totalItems() }}</span>
+      }
+    </a>
+
+    <a routerLink="/contact" class="btn btn-primary">Contact us</a>
   </div>
 </header>
 
@@ -27,17 +35,30 @@
 </main>
 
 <footer class="footer">
-  <div class="footer-brand">
-    ShopEasy
-    <p>A demo shop built with Angular, Spring Boot and MySQL.</p>
-  </div>
-  <div class="footer-links">
-    <a routerLink="/" routerLinkActive="active">Shop</a>
-    <a routerLink="/cart" routerLinkActive="active">Cart</a>
-    <a routerLink="/orders" routerLinkActive="active">My orders</a>
-  </div>
-  <div class="footer-credits">
-    <p>Product photos from Unsplash and Pexels.</p>
-    <p>Built by Prasad Kuyate. <a href="https://github.com/PrasadK8669/shopeasy" target="_blank" rel="noopener">Source code on GitHub</a>.</p>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a routerLink="/" class="brand">
+        <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+          <rect width="32" height="32" rx="9" fill="#f5a524" />
+          <path d="M9 12h14l-1.2 11a2 2 0 0 1-2 1.8h-7.6a2 2 0 0 1-2-1.8L9 12z" fill="#1b1f3b" />
+          <path d="M12.5 12v-1a3.5 3.5 0 0 1 7 0v1" fill="none" stroke="#1b1f3b" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        ShopEasy
+      </a>
+      <p>A demo shop built with Angular, Spring Boot and MySQL.</p>
+    </div>
+
+    <nav class="footer-links" aria-label="Footer">
+      <a routerLink="/">Shop</a>
+      <a routerLink="/cart">Cart</a>
+      <a routerLink="/orders">My orders</a>
+      <a routerLink="/contact">Contact us</a>
+    </nav>
+
+    <div class="footer-credit">
+      <p>Product photos from Unsplash and Pexels.</p>
+      <p>Built by Prasad Kuyate.</p>
+      <a href="https://github.com/PrasadK8669/shopeasy" target="_blank" rel="noopener">Source code on GitHub</a>
+    </div>
   </div>
 </footer>
