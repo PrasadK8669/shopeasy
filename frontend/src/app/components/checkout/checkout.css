@@ -1,8 +1,8 @@
 h3 { margin-bottom: 16px; }
 .summary h3 { margin-bottom: 0; }
-.alert { margin-bottom: 16px; }
-.form-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.alert { margin-bottom: 18px; }
+.form-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
 
-.success { max-width: 640px; margin: 0 auto; display: grid; gap: 14px; }
-.check { width: 44px; height: 44px; border-radius: 50%; background: #dcf4e9; color: var(--ok); display: grid; place-items: center; }
-.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+.success { max-width: 640px; margin: 0 auto; display: grid; gap: 16px; }
+.check { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; color: var(--ok); box-shadow: var(--raised-sm); }
+.actions { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px; }

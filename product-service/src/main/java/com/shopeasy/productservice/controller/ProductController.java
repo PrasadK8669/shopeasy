@@ -1,10 +1,9 @@
 package com.shopeasy.productservice.controller;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -19,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.shopeasy.productservice.dto.CategoryCount;
 import com.shopeasy.productservice.dto.StockRequest;
 import com.shopeasy.productservice.entity.Product;
 import com.shopeasy.productservice.service.ProductService;
@@ -38,9 +38,19 @@ public class ProductController {
 
     @GetMapping
     public Page<Product> getAll(@RequestParam(required = false) String search,
+                                @RequestParam(required = false) String category,
+                                @RequestParam(required = false) BigDecimal minPrice,
+                                @RequestParam(required = false) BigDecimal maxPrice,
+                                @RequestParam(defaultValue = "false") boolean inStock,
+                                @RequestParam(defaultValue = "featured") String sort,
                                 @RequestParam(defaultValue = "0") int page,
-                                @RequestParam(defaultValue = "10") int size) {
-        return productService.getAll(search, PageRequest.of(page, size, Sort.by("id")));
+                                @RequestParam(defaultValue = "12") int size) {
+        return productService.getAll(search, category, minPrice, maxPrice, inStock, sort, page, size);
+    }
+
+    @GetMapping("/categories")
+    public List<CategoryCount> getCategories() {
+        return productService.getCategories();
     }
 
     @GetMapping("/{id}")
@@ -68,8 +78,8 @@ public class ProductController {
     public Product reduceStock(@PathVariable Long id, @Valid @RequestBody StockRequest request) {
         return productService.reduceStock(id, request.quantity());
     }
-    @PostMapping("/bulk")
-public ResponseEntity<List<Product>> createAll(@Valid @RequestBody List<@Valid Product> products) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(productService.createAll(products));
-}
+        @PatchMapping("/{id}/stock/restore")
+    public Product restoreStock(@PathVariable Long id, @Valid @RequestBody StockRequest request) {
+        return productService.restoreStock(id, request.quantity());
+    }
 }

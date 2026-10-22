@@ -1,23 +1,97 @@
-<section class="hero">
-  <div class="hero-content">
-    <h1>Everyday essentials, in stock now</h1>
-    <p>Electronics, stationery, home and accessories. Availability updates as soon as an order is placed.</p>
-    <button class="btn btn-primary" (click)="scrollTarget.scrollIntoView()">Browse products</button>
-  </div>
-</section>
+<div class="page-head">
+  <h1>Shop</h1>
+  <p>Browse what is in stock. Availability updates as soon as an order is placed.</p>
+</div>
 
-<div #scrollTarget id="products" class="search" role="search">
-  <div class="search-field">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-      <circle cx="11" cy="11" r="7" />
-      <path d="M20 20l-3.5-3.5" />
-    </svg>
-    <input #box class="input" type="text" placeholder="Search by product name"
-           aria-label="Search products" (keyup.enter)="onSearch(box.value)" />
+<div class="toolbar">
+  <div class="search" role="search">
+    <div class="search-field">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" />
+        <path d="M20 20l-3.5-3.5" />
+      </svg>
+      <input #box class="input" type="text" placeholder="Search by product name"
+             aria-label="Search products" (keyup.enter)="onSearch(box.value)" />
+    </div>
+    <button class="btn btn-primary" (click)="onSearch(box.value)">Search</button>
+    @if (search()) {
+      <button class="btn btn-ghost" (click)="clearSearch(box)">Clear</button>
+    }
   </div>
-  <button class="btn btn-primary" (click)="onSearch(box.value)">Search</button>
-  @if (search()) {
-    <button class="btn btn-ghost" (click)="clear(box)">Clear</button>
+
+  <label class="sort">
+    <span class="muted">Sort by</span>
+    <select #sortBox class="input" (change)="setSort(sortBox.value)">
+      <option value="featured">Featured</option>
+      <option value="price-asc">Price: low to high</option>
+      <option value="price-desc">Price: high to low</option>
+      <option value="name">Name: A to Z</option>
+    </select>
+  </label>
+
+  <button type="button" class="btn btn-ghost filters-toggle" (click)="toggleFilters()"
+          [attr.aria-expanded]="filtersOpen()" aria-controls="filters">
+    Filters
+    @if (activeFilters() > 0) {
+      ({{ activeFilters() }})
+    }
+  </button>
+</div>
+
+<div class="chips" aria-label="Quick categories">
+  <button type="button" class="chip" [class.on]="category() === ''"
+          [attr.aria-pressed]="category() === ''" (click)="selectCategory('')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </svg>
+    All
+  </button>
+
+  @for (c of categories(); track c.name) {
+    <button type="button" class="chip" [class.on]="category() === c.name"
+            [attr.aria-pressed]="category() === c.name" (click)="selectCategory(c.name)">
+      @switch (c.name) {
+        @case ('Electronics') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="12" rx="2" />
+            <path d="M8 20h8M12 16v4" />
+          </svg>
+        }
+        @case ('Stationery') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 20l1-4L16 5l3 3L8 19l-4 1z" />
+            <path d="M14 7l3 3" />
+          </svg>
+        }
+        @case ('Home') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 11l9-8 9 8" />
+            <path d="M5 10v10h14V10" />
+          </svg>
+        }
+        @case ('Accessories') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5" />
+            <path d="M12 9v3l2 1M9 7l1-4h4l1 4M9 17l1 4h4l1-4" />
+          </svg>
+        }
+        @case ('Fitness') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12" />
+          </svg>
+        }
+        @default {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12V4h8l10 10-8 8L3 12z" />
+            <circle cx="7.5" cy="8.5" r="1" />
+          </svg>
+        }
+      }
+      {{ c.name }}
+    </button>
   }
 </div>
 
@@ -28,88 +102,125 @@
   </div>
 }
 
-@if (loading() && products().length === 0) {
-  <div class="grid">
-    @for (n of [1, 2, 3, 4]; track n) {
-      <div class="skeleton"></div>
-    }
-  </div>
-} @else if (!error() && products().length === 0) {
-  <div class="panel empty">
-    <svg viewBox="0 0 96 96" aria-hidden="true" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="42" cy="42" r="24" />
-      <path d="M60 60l18 18" />
-      <circle cx="42" cy="42" r="5" fill="var(--brand)" stroke="none" />
-    </svg>
-    @if (search()) {
-      <h3>No products match "{{ search() }}"</h3>
-      <p class="muted">Try a shorter word, or clear the search to see everything.</p>
-    } @else {
-      <h3>No products yet</h3>
-      <p class="muted">Add products through Product Service and they will appear here.</p>
-    }
-  </div>
-}
-
-@if (products().length > 0) {
-  <p class="result-line">
-    @if (search()) {
-      Results for "{{ search() }}"
-    } @else {
-      All products
-    }
-  </p>
-
-  <div class="grid">
-    @for (p of products(); track p.id) {
-      <article class="card">
-        @if (p.imageUrl && !brokenImages().includes(p.id)) {
-          <a class="media-link" [routerLink]="['/products', p.id]">
-            <img class="photo" [src]="p.imageUrl" [alt]="p.name" loading="lazy" (error)="markBroken(p.id)" />
-          </a>
-        } @else {
-          <a class="media-link" [routerLink]="['/products', p.id]">
-            <div class="tile" [attr.data-cat]="p.category" aria-hidden="true">{{ p.name.charAt(0) }}</div>
-          </a>
-        }
-        <div class="card-body">
-          <span class="category">{{ p.category }}</span>
-          <h3><a [routerLink]="['/products', p.id]">{{ p.name }}</a></h3>
-          <p class="desc">{{ p.description }}</p>
-          <div class="price-row">
-            <span class="price">{{ p.price | currency: 'INR' }}</span>
-            <span class="stock" [class.low]="p.stock > 0 && p.stock <= 5" [class.out]="p.stock === 0">
-              @if (p.stock === 0) {
-                Out of stock
-              } @else if (p.stock <= 5) {
-                Only {{ p.stock }} left
-              } @else {
-                In stock
-              }
-            </span>
-          </div>
-          <button class="btn btn-primary full" (click)="addToCart(p)"
-                  [disabled]="p.stock === 0 || inCart(p.id) >= p.stock">
-            @if (p.stock === 0) {
-              Out of stock
-            } @else if (inCart(p.id) >= p.stock) {
-              Max in cart
-            } @else if (addedId() === p.id) {
-              Added to cart
-            } @else {
-              Add to cart
-            }
+<div class="shop">
+  <aside class="sidebar" id="filters" [class.open]="filtersOpen()" aria-label="Filters">
+    <section class="panel">
+      <h3>Categories</h3>
+      <div class="options">
+        <button type="button" class="opt" [class.on]="category() === ''"
+                [attr.aria-pressed]="category() === ''" (click)="selectCategory('')">
+          <span>All products</span>
+          <span class="n">{{ totalAll() }}</span>
+        </button>
+        @for (c of categories(); track c.name) {
+          <button type="button" class="opt" [class.on]="category() === c.name"
+                  [attr.aria-pressed]="category() === c.name" (click)="selectCategory(c.name)">
+            <span>{{ c.name }}</span>
+            <span class="n">{{ c.count }}</span>
           </button>
-        </div>
-      </article>
-    }
-  </div>
-}
+        }
+      </div>
+    </section>
 
-@if (totalPages() > 1) {
-  <div class="pager">
-    <button class="btn btn-ghost" (click)="prev()" [disabled]="page() === 0">Previous</button>
-    <span>Page {{ page() + 1 }} of {{ totalPages() }}</span>
-    <button class="btn btn-ghost" (click)="next()" [disabled]="page() >= totalPages() - 1">Next</button>
-  </div>
-}
+    <section class="panel">
+      <h3>Availability</h3>
+      <div class="options">
+        <button type="button" class="opt" [class.on]="inStock()"
+                [attr.aria-pressed]="inStock()" (click)="toggleStock()">
+          <span>In stock only</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h3>Price</h3>
+      <div class="options">
+        @for (r of priceRanges; track r.key) {
+          <button type="button" class="opt" [class.on]="priceKey() === r.key"
+                  [attr.aria-pressed]="priceKey() === r.key" (click)="setPrice(r.key)">
+            <span>{{ r.label }}</span>
+          </button>
+        }
+      </div>
+    </section>
+
+    @if (activeFilters() > 0) {
+      <button type="button" class="btn btn-ghost full" (click)="resetAll(box)">Clear all filters</button>
+    }
+  </aside>
+
+  <section class="results">
+    @if (loading() && products().length === 0) {
+      <div class="grid">
+        @for (n of [1, 2, 3, 4, 5, 6]; track n) {
+          <div class="skeleton"></div>
+        }
+      </div>
+    } @else if (!error() && products().length === 0) {
+      <div class="panel empty">
+        <h3>No products found</h3>
+        <p class="muted">Nothing matches your search and filters. Try removing one of them.</p>
+        @if (activeFilters() > 0) {
+          <button type="button" class="btn btn-primary" (click)="resetAll(box)">Clear all filters</button>
+        }
+      </div>
+    }
+
+    @if (products().length > 0) {
+      <p class="result-line">Showing {{ products().length }} of {{ total() }} products</p>
+
+      <div class="grid">
+        @for (p of products(); track p.id) {
+          <article class="card" [class.sold-out]="p.stock === 0">
+            <a [routerLink]="['/products', p.id]" class="photo" [attr.aria-label]="'View ' + p.name">
+              <div class="frame">
+                @if (showImage(p)) {
+                  <img [src]="p.imageUrl" [alt]="p.name" loading="lazy" (error)="markBroken(p.id)" />
+                } @else {
+                  <div class="tile" [attr.data-cat]="p.category" aria-hidden="true">{{ p.name.charAt(0) }}</div>
+                }
+              </div>
+              @if (p.stock === 0) {
+                <span class="badge out">Out of stock</span>
+              } @else if (p.stock <= 5) {
+                <span class="badge low">Only {{ p.stock }} left</span>
+              }
+            </a>
+
+            <div class="body">
+              <span class="category">{{ p.category }}</span>
+              <h3><a [routerLink]="['/products', p.id]">{{ p.name }}</a></h3>
+              <p class="desc">{{ p.description }}</p>
+              <div class="price-row">
+                <span class="price">{{ p.price | currency: 'INR' }}</span>
+                @if (p.stock > 5) {
+                  <span class="stock">In stock</span>
+                }
+              </div>
+              <button class="btn btn-primary full" (click)="addToCart(p)"
+                      [disabled]="p.stock === 0 || inCart(p.id) >= p.stock">
+                @if (p.stock === 0) {
+                  Out of stock
+                } @else if (inCart(p.id) >= p.stock) {
+                  Max in cart
+                } @else if (addedId() === p.id) {
+                  Added to cart
+                } @else {
+                  Add to cart
+                }
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+
+    @if (totalPages() > 1) {
+      <div class="pager">
+        <button class="btn btn-ghost" (click)="prev()" [disabled]="page() === 0">Previous</button>
+        <span>Page {{ page() + 1 }} of {{ totalPages() }}</span>
+        <button class="btn btn-ghost" (click)="next()" [disabled]="page() >= totalPages() - 1">Next</button>
+      </div>
+    }
+  </section>
+</div>

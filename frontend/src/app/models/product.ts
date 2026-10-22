@@ -21,3 +21,19 @@ export interface CartItem {
   product: Product;
   quantity: number;
 }
+
+export interface CategoryCount {
+  name: string;
+  count: number;
+}
+
+export interface ProductQuery {
+  search?: string;
+  category?: string;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  inStock?: boolean;
+  sort?: string;
+  page?: number;
+  size?: number;
+}

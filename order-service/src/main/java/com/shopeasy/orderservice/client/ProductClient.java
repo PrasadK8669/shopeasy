@@ -66,4 +66,18 @@ public class ProductClient {
             throw new ProductServiceUnavailableException();
         }
     }
+        public void restoreStock(Long id, int quantity) {
+        try {
+            restClient.patch()
+                    .uri("/api/products/{id}/stock/restore", id)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(new StockUpdateRequest(quantity))
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new ProductNotFoundException(id);
+        } catch (ResourceAccessException | HttpServerErrorException e) {
+            throw new ProductServiceUnavailableException();
+        }
+    }
 }

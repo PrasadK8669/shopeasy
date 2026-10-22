@@ -1,0 +1,93 @@
+<div class="page-head">
+  <h1>Contact us</h1>
+  <p>Questions about a product, an order or the site? Send a message and it is saved to the shop's database.</p>
+</div>
+
+<div class="layout">
+  @if (sent()) {
+    <div class="panel success">
+      <div class="check" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <h2>Message sent</h2>
+      <p class="muted">Thanks, {{ sentName() }}. Your message was saved.</p>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" (click)="sendAnother()">Send another message</button>
+        <a routerLink="/" class="btn btn-ghost">Back to shop</a>
+      </div>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()" class="panel">
+      <h3>Send a message</h3>
+
+      <div class="two">
+        <div class="field">
+          <label for="name">Full name</label>
+          <input id="name" class="input" type="text" formControlName="name" autocomplete="name" />
+          @if (name.invalid && name.touched) {
+            <span class="field-error">Enter your name (at least 2 characters).</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" class="input" type="email" formControlName="email" autocomplete="email" />
+          @if (email.invalid && email.touched) {
+            <span class="field-error">Enter a valid email address, like name@example.com.</span>
+          }
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="topic">Topic</label>
+        <select id="topic" class="input" formControlName="topic">
+          @for (t of topics; track t.value) {
+            <option [value]="t.value">{{ t.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="message">Message</label>
+        <textarea #msg id="message" class="input" formControlName="message" rows="6"
+                  maxlength="2000" (input)="count.set(msg.value.length)"></textarea>
+        <div class="under">
+          @if (message.invalid && message.touched) {
+            <span class="field-error">Write at least 10 characters so we can understand your message.</span>
+          } @else {
+            <span></span>
+          }
+          <span class="counter">{{ count() }} / {{ maxLength }}</span>
+        </div>
+      </div>
+
+      @if (error()) {
+        <div class="alert alert-error" role="alert">{{ error() }}</div>
+      }
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="sending()">
+          {{ sending() ? 'Sending...' : 'Send message' }}
+        </button>
+        <a routerLink="/" class="btn btn-ghost">Cancel</a>
+      </div>
+
+      <p class="fine muted">This is a demo. Messages are stored in the database and no email is sent.</p>
+    </form>
+  }
+
+  <aside class="panel summary side">
+    <h3>Before you write</h3>
+    <p class="muted">Looking for an order you already placed? Open <a routerLink="/orders">My orders</a> to see its items and total.</p>
+    <p class="muted">Every product page shows live stock, so you can check availability without asking.</p>
+
+    <h3 class="gap">About this project</h3>
+    <p class="muted">ShopEasy is a portfolio project by Prasad Kuyate, built with Angular, Spring Boot microservices, Hibernate and MySQL.</p>
+    <div class="side-links">
+      <a href="https://github.com/PrasadK8669/shopeasy" target="_blank" rel="noopener">Source code on GitHub</a>
+      <a href="https://www.linkedin.com/in/prasad-kuyate-965467322/" target="_blank" rel="noopener">Prasad on LinkedIn</a>
+    </div>
+  </aside>
+</div>

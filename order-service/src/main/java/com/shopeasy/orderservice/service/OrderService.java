@@ -1,10 +1,13 @@
 package com.shopeasy.orderservice.service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +26,11 @@ import com.shopeasy.orderservice.repository.OrderRepository;
 @Service
 public class OrderService {
 
+    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
+
+    private record Reduction(Long productId, int quantity) {
+    }
+
     private final OrderRepository orderRepository;
     private final ProductClient productClient;
 
@@ -39,7 +47,8 @@ public class OrderService {
             quantities.merge(item.productId(), item.quantity(), Integer::sum);
         }
 
-        // 2. Fetch every product and check the stock BEFORE changing anything
+        // 2. Friendly pre-check. This is only a courtesy to fail fast with a clear message.
+        //    It can be out of date a moment later, so it is NOT what protects the stock.
         Map<Long, ProductResponse> products = new LinkedHashMap<>();
         for (Map.Entry<Long, Integer> entry : quantities.entrySet()) {
             ProductResponse product = productClient.getProduct(entry.getKey());
@@ -52,12 +61,24 @@ public class OrderService {
             products.put(entry.getKey(), product);
         }
 
-        // 3. Reduce the stock for every product
-        for (Map.Entry<Long, Integer> entry : quantities.entrySet()) {
-            productClient.reduceStock(entry.getKey(), entry.getValue());
+        // 3. Reduce the stock. Product Service does this atomically, so this is the real guard.
+        //    If anything fails from here on, give back what was already taken.
+        List<Reduction> reduced = new ArrayList<>();
+        try {
+            for (Map.Entry<Long, Integer> entry : quantities.entrySet()) {
+                productClient.reduceStock(entry.getKey(), entry.getValue());
+                reduced.add(new Reduction(entry.getKey(), entry.getValue()));
+            }
+            Order order = buildOrder(request, quantities, products);
+            return OrderResponse.from(orderRepository.save(order));
+        } catch (RuntimeException e) {
+            restoreStock(reduced);
+            throw e;
         }
+    }
 
-        // 4. Build the order, copying the name and price into each item (a snapshot)
+    private Order buildOrder(OrderRequest request, Map<Long, Integer> quantities,
+                             Map<Long, ProductResponse> products) {
         Order order = new Order();
         order.setCustomerName(request.customerName());
         order.setCustomerEmail(request.customerEmail());
@@ -77,9 +98,18 @@ public class OrderService {
             total = total.add(product.price().multiply(BigDecimal.valueOf(entry.getValue())));
         }
         order.setTotalAmount(total);
+        return order;
+    }
 
-        // 5. Save the order and its items
-        return OrderResponse.from(orderRepository.save(order));
+    private void restoreStock(List<Reduction> reduced) {
+        for (Reduction r : reduced) {
+            try {
+                productClient.restoreStock(r.productId(), r.quantity());
+            } catch (RuntimeException ex) {
+                log.error("Could not restore {} unit(s) of product {} after a failed order. Fix the stock manually.",
+                        r.quantity(), r.productId(), ex);
+            }
+        }
     }
 
     @Transactional(readOnly = true)

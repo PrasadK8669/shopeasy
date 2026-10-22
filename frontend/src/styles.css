@@ -135,3 +135,14 @@ a { color: var(--indigo); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+/* Quantity stepper (cart and product page) */
+.stepper { display: inline-flex; align-items: center; gap: 6px; padding: 6px; border-radius: 999px; box-shadow: var(--inset-sm); }
+.step {
+  width: 34px; height: 34px; border: none; border-radius: 50%;
+  background: var(--bg); color: var(--ink); font: inherit; font-weight: 700; font-size: 16px; cursor: pointer;
+  box-shadow: var(--raised-sm); transition: box-shadow 0.15s;
+}
+.step:hover:not(:disabled) { box-shadow: var(--raised); }
+.step:active:not(:disabled) { box-shadow: var(--inset-sm); }
+.step:disabled { color: #6b7289; box-shadow: none; cursor: not-allowed; }
+.qty { min-width: 30px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }

@@ -1,0 +1,25 @@
+h3 { margin-bottom: 18px; }
+.side h3 { margin-bottom: 0; }
+.side h3.gap { margin-top: 12px; }
+
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 640px) {
+  .two { grid-template-columns: 1fr; gap: 0; }
+}
+
+select.input { cursor: pointer; }
+textarea.input { min-height: 150px; resize: vertical; line-height: 1.5; }
+
+.under { display: flex; justify-content: space-between; gap: 12px; }
+.counter { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.alert { margin-bottom: 18px; }
+.form-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+.fine { font-size: 13px; margin-top: 16px; }
+
+.success { display: grid; gap: 14px; justify-items: start; }
+.check { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; color: var(--ok); box-shadow: var(--raised-sm); }
+.actions { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
+
+.side a { font-weight: 500; }
+.side-links { display: grid; gap: 8px; }

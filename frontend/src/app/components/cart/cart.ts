@@ -1,6 +1,7 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Product } from '../../models/product';
 import { CartService } from '../../services/cart.service';
 
 @Component({
@@ -13,12 +14,6 @@ export class Cart {
   protected cart = inject(CartService);
 
   brokenImages = signal<number[]>([]);
-
-  markBroken(id: number): void {
-    if (!this.brokenImages().includes(id)) {
-      this.brokenImages.update(ids => [...ids, id]);
-    }
-  }
 
   increase(productId: number, current: number): void {
     this.cart.setQuantity(productId, current + 1);
@@ -34,5 +29,13 @@ export class Cart {
 
   clear(): void {
     this.cart.clear();
+  }
+
+  showImage(p: Product): boolean {
+    return !!p.imageUrl && !this.brokenImages().includes(p.id);
+  }
+
+  markBroken(id: number): void {
+    this.brokenImages.update(list => (list.includes(id) ? list : [...list, id]));
   }
 }

@@ -1,66 +1,107 @@
 @if (loading()) {
-  <div class="detail skeleton"></div>
-} @else if (notFound()) {
-  <div class="panel empty">
-    <svg viewBox="0 0 96 96" aria-hidden="true" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="42" cy="42" r="24" />
-      <path d="M60 60l18 18" />
-      <circle cx="42" cy="42" r="5" fill="var(--brand)" stroke="none" />
-    </svg>
-    <h3>Product not found</h3>
-    <p class="muted">This product may have been removed or the link is incorrect.</p>
-    <a class="btn btn-primary" routerLink="/">Back to shop</a>
+  <div class="detail">
+    <div class="skeleton big"></div>
+    <div class="skeleton big"></div>
   </div>
-} @else if (error()) {
+} @else if (error() === 'notfound') {
+  <div class="panel empty">
+    <h3>Product not found</h3>
+    <p class="muted">This product does not exist, or it was removed from the shop.</p>
+    <a routerLink="/" class="btn btn-primary">Back to shop</a>
+  </div>
+} @else if (error() === 'failed') {
   <div class="alert alert-error" role="alert">
-    <span>{{ error() }}</span>
+    <span>We could not load this product. Check that Product Service is running on port 8081, then try again.</span>
     <button class="btn btn-ghost btn-sm" (click)="retry()">Try again</button>
   </div>
-} @else if (product(); as p) {
-  <div class="detail">
-    <div class="media">
-      @if (p.imageUrl) {
-        <img class="photo" [src]="p.imageUrl" [alt]="p.name" />
-      } @else {
-        <div class="tile" [attr.data-cat]="p.category" aria-hidden="true">{{ p.name.charAt(0) }}</div>
-      }
-    </div>
+} @else {
+  @if (product(); as p) {
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a routerLink="/">Shop</a>
+      <span aria-hidden="true">/</span>
+      <span>{{ p.category }}</span>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">{{ p.name }}</span>
+    </nav>
 
-    <div class="info">
-      <span class="category">{{ p.category }}</span>
-      <h1>{{ p.name }}</h1>
-      <span class="price">{{ p.price | currency: 'INR' }}</span>
-      <span class="stock" [class.low]="p.stock > 0 && p.stock <= 5" [class.out]="p.stock === 0">
-        @if (p.stock === 0) {
-          Out of stock
-        } @else if (p.stock <= 5) {
-          Only {{ p.stock }} left
-        } @else {
-          In stock
-        }
-      </span>
-      <p class="desc">{{ p.description }}</p>
+    <div class="detail">
+      <div class="gallery panel">
+        <div class="well">
+          @if (showImage(p)) {
+            <img [src]="p.imageUrl" [alt]="p.name" (error)="markBroken(p.id)" />
+          } @else {
+            <div class="tile" [attr.data-cat]="p.category" aria-hidden="true">{{ p.name.charAt(0) }}</div>
+          }
+        </div>
+      </div>
 
-      @if (p.stock > 0) {
+      <div class="info panel">
+        <span class="muted">{{ p.category }}</span>
+        <h1>{{ p.name }}</h1>
+        <p class="price">{{ p.price | currency: 'INR' }}</p>
+
+        <p class="stock-line" [class.low]="p.stock > 0 && p.stock <= 5" [class.out]="p.stock === 0">
+          @if (p.stock === 0) {
+            Out of stock
+          } @else if (p.stock <= 5) {
+            Only {{ p.stock }} left
+          } @else {
+            In stock
+          }
+        </p>
+
+        <p class="description">{{ p.description }}</p>
+
         <div class="buy">
-          <div class="stepper">
-            <button class="btn btn-ghost" (click)="decrease()" [disabled]="quantity() <= 1"
-                    aria-label="Decrease quantity">-</button>
-            <span class="qty">{{ quantity() }}</span>
-            <button class="btn btn-ghost" (click)="increase()" [disabled]="quantity() >= p.stock"
+          <div class="stepper" role="group" aria-label="Quantity">
+            <button type="button" class="step" (click)="decrease()" [disabled]="quantity() <= 1"
+                    aria-label="Decrease quantity">&minus;</button>
+            <span class="qty" aria-live="polite">{{ quantity() }}</span>
+            <button type="button" class="step" (click)="increase()" [disabled]="quantity() >= available()"
                     aria-label="Increase quantity">+</button>
           </div>
-          <button class="btn btn-primary" (click)="addToCart()">
-            @if (added()) {
+
+          <button class="btn btn-primary" (click)="addToCart()" [disabled]="available() < 1">
+            @if (p.stock === 0) {
+              Out of stock
+            } @else if (available() < 1) {
+              Max in cart
+            } @else if (added()) {
               Added to cart
             } @else {
               Add to cart
             }
           </button>
         </div>
-      }
 
-      <a class="btn btn-ghost back" routerLink="/">Back to shop</a>
+        @if (inCartCount() > 0) {
+          <p class="note muted">{{ inCartCount() }} in your cart. <a routerLink="/cart">View cart</a></p>
+        }
+        <p class="note muted">Stock is checked again when you place the order.</p>
+
+        <a routerLink="/" class="btn btn-ghost back">Back to shop</a>
+      </div>
     </div>
-  </div>
+
+    @if (related().length > 0) {
+      <section class="related">
+        <h2>More in {{ p.category }}</h2>
+        <div class="rgrid">
+          @for (r of related(); track r.id) {
+            <a class="rcard" [routerLink]="['/products', r.id]">
+              <div class="rframe">
+                @if (showImage(r)) {
+                  <img [src]="r.imageUrl" [alt]="r.name" loading="lazy" (error)="markBroken(r.id)" />
+                } @else {
+                  <div class="tile" [attr.data-cat]="r.category" aria-hidden="true">{{ r.name.charAt(0) }}</div>
+                }
+              </div>
+              <span class="rname">{{ r.name }}</span>
+              <span class="rprice">{{ r.price | currency: 'INR' }}</span>
+            </a>
+          }
+        </div>
+      </section>
+    }
+  }
 }
