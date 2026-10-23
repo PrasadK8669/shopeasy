@@ -1,0 +1,26 @@
+server:
+  port: 8083
+
+spring:
+  config:
+    import: optional:classpath:application-local.yml
+  datasource:
+    url: jdbc:mysql://localhost:3306/auth_db
+    username: root
+    password: YOUR_PASSWORD_HERE
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+
+app:
+  cors:
+    allowed-origin: http://localhost:4200
+  jwt:
+    secret: SET_IN_LOCAL_FILE
+    expiry-minutes: 60
+  admin:
+    email: ""
+    password: ""
