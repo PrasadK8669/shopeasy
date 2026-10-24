@@ -38,11 +38,6 @@
   </div>
 } @else if (cart.items().length === 0) {
   <div class="panel empty">
-    <svg viewBox="0 0 96 96" aria-hidden="true" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M24 32h48l-5 40a6 6 0 0 1-6 5H35a6 6 0 0 1-6-5z" />
-      <path d="M37 32v-6a11 11 0 0 1 22 0v6" />
-      <circle cx="48" cy="52" r="6" fill="var(--brand)" stroke="none" />
-    </svg>
     <h3>Nothing to check out</h3>
     <p class="muted">Your cart is empty. Add some items first.</p>
     <a routerLink="/" class="btn btn-primary">Browse products</a>
@@ -53,36 +48,31 @@
   </div>
 
   <div class="layout">
-    <form [formGroup]="form" (ngSubmit)="submit()" class="panel">
-      <h3>Contact details</h3>
+    <section class="panel">
+      <h3>Ordering as</h3>
 
-      <div class="field">
-        <label for="customerName">Full name</label>
-        <input id="customerName" class="input" type="text" formControlName="customerName" autocomplete="name" />
-        @if (name.invalid && name.touched) {
-          <span class="field-error">Enter your name (at least 2 characters).</span>
-        }
-      </div>
-
-      <div class="field">
-        <label for="customerEmail">Email</label>
-        <input id="customerEmail" class="input" type="email" formControlName="customerEmail" autocomplete="email" />
-        @if (email.invalid && email.touched) {
-          <span class="field-error">Enter a valid email address, like name@example.com.</span>
-        }
-      </div>
+      @if (auth.user(); as user) {
+        <div class="identity">
+          <span class="avatar" aria-hidden="true">{{ user.name.charAt(0).toUpperCase() }}</span>
+          <div>
+            <strong>{{ user.name }}</strong>
+            <div class="muted">{{ user.email }}</div>
+          </div>
+        </div>
+      }
+      <p class="muted note">This order is saved to your account. You can see it under My orders.</p>
 
       @if (error()) {
         <div class="alert alert-error" role="alert">{{ error() }}</div>
       }
 
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary" [disabled]="submitting()">
+        <button type="button" class="btn btn-primary" (click)="submit()" [disabled]="submitting()">
           {{ submitting() ? 'Placing order...' : 'Place order' }}
         </button>
         <a routerLink="/cart" class="btn btn-ghost">Back to cart</a>
       </div>
-    </form>
+    </section>
 
     <aside class="panel summary">
       <h3>Order summary</h3>

@@ -42,3 +42,15 @@
   .links { order: 3; width: 100%; justify-content: center; }
   .footer-inner { grid-template-columns: 1fr; }
 }
+.account { display: flex; align-items: center; gap: 10px; }
+.avatar {
+  display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%;
+  background: var(--brand); color: var(--ink); font-weight: 700; box-shadow: var(--raised-sm);
+}
+.who { display: grid; line-height: 1.2; }
+.who-name { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.role { font-size: 12px; font-weight: 600; color: var(--warn); }
+
+@media (max-width: 720px) {
+  .who { display: none; }
+}

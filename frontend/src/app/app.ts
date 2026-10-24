@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { AuthService } from './services/auth.service';
 import { CartService } from './services/cart.service';
 
 @Component({
@@ -10,4 +11,12 @@ import { CartService } from './services/cart.service';
 })
 export class App {
   protected cart = inject(CartService);
+  protected auth = inject(AuthService);
+  private router = inject(Router);
+
+  logout(): void {
+    this.auth.logout();
+    this.cart.clear(); // the next person on this computer should not inherit the cart
+    this.router.navigateByUrl('/');
+  }
 }

@@ -1,46 +1,29 @@
 import { CurrencyPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Order } from '../../models/order';
+import { AuthService } from '../../services/auth.service';
 import { CartService } from '../../services/cart.service';
 import { OrderService } from '../../services/order.service';
 
 @Component({
   selector: 'app-checkout',
-  imports: [ReactiveFormsModule, CurrencyPipe, RouterLink],
+  imports: [CurrencyPipe, RouterLink],
   templateUrl: './checkout.html',
   styleUrl: './checkout.css',
 })
 export class Checkout {
-  private fb = inject(FormBuilder);
   private orderService = inject(OrderService);
   protected cart = inject(CartService);
-
-  form = this.fb.nonNullable.group({
-    customerName: ['', [Validators.required, Validators.minLength(2)]],
-    customerEmail: ['', [Validators.required, Validators.email]],
-  });
+  protected auth = inject(AuthService);
 
   submitting = signal(false);
   error = signal('');
   placedOrder = signal<Order | null>(null);
 
-  get name() {
-    return this.form.controls.customerName;
-  }
-
-  get email() {
-    return this.form.controls.customerEmail;
-  }
-
   submit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-    if (this.cart.items().length === 0) {
+    if (this.cart.items().length === 0 || this.submitting()) {
       return;
     }
 
@@ -48,11 +31,7 @@ export class Checkout {
     this.error.set('');
 
     const request = {
-      ...this.form.getRawValue(),
-      items: this.cart.items().map(i => ({
-        productId: i.product.id,
-        quantity: i.quantity,
-      })),
+      items: this.cart.items().map(i => ({ productId: i.product.id, quantity: i.quantity })),
     };
 
     this.orderService.placeOrder(request).subscribe({
@@ -64,6 +43,8 @@ export class Checkout {
       error: (err: HttpErrorResponse) => {
         if (err.status === 0) {
           this.error.set('Cannot reach Order Service. Is it running on port 8082?');
+        } else if (err.status === 401) {
+          this.error.set('Your session has expired. Sign in again to place your order.');
         } else {
           this.error.set(err.error?.message ?? 'Something went wrong. Please try again.');
         }

@@ -4,8 +4,6 @@ export interface OrderItemRequest {
 }
 
 export interface OrderRequest {
-  customerName: string;
-  customerEmail: string;
   items: OrderItemRequest[];
 }
 

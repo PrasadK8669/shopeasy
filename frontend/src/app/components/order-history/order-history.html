@@ -1,7 +1,7 @@
 <div class="page-head head-row">
   <div>
-    <h1>My orders</h1>
-    <p>Your most recent orders appear first.</p>
+    <h1>{{ auth.isAdmin() ? 'All orders' : 'My orders' }}</h1>
+    <p>{{ auth.isAdmin() ? 'As an admin you can see orders from every customer.' : 'Your most recent orders appear first.' }}</p>
   </div>
   <button class="btn btn-ghost" (click)="load()">Refresh</button>
 </div>

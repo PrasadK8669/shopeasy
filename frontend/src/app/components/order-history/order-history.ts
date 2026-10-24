@@ -1,3 +1,4 @@
+import { AuthService } from '../../services/auth.service';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
@@ -14,6 +15,7 @@ import { OrderService } from '../../services/order.service';
 export class OrderHistory implements OnInit {
   private orderService = inject(OrderService);
 
+  protected auth = inject(AuthService);
   orders = signal<Order[]>([]);
   loading = signal(false);
   error = signal('');

@@ -11,7 +11,10 @@
 
     <nav class="links" aria-label="Main">
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Shop</a>
-      <a routerLink="/orders" routerLinkActive="active">My orders</a>
+      @if (auth.isLoggedIn()) {
+        <a routerLink="/orders" routerLinkActive="active">My orders</a>
+      }
+      <a routerLink="/contact" routerLinkActive="active">Contact</a>
     </nav>
 
     <a routerLink="/cart" routerLinkActive="active" class="icon-btn"
@@ -26,7 +29,23 @@
       }
     </a>
 
-    <a routerLink="/contact" class="btn btn-primary">Contact us</a>
+    @if (auth.user(); as user) {
+      <div class="account">
+        <span class="avatar" aria-hidden="true">{{ user.name.charAt(0).toUpperCase() }}</span>
+        <span class="who">
+          <span class="who-name">{{ user.name }}</span>
+          @if (auth.isAdmin()) {
+            <span class="role">Admin</span>
+          }
+        </span>
+        <button type="button" class="btn btn-ghost btn-sm" (click)="logout()">Sign out</button>
+      </div>
+    } @else {
+      <div class="account">
+        <a routerLink="/login" class="btn btn-ghost btn-sm">Sign in</a>
+        <a routerLink="/register" class="btn btn-primary btn-sm">Create account</a>
+      </div>
+    }
   </div>
 </header>
 
