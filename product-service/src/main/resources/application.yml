@@ -4,6 +4,8 @@ server:
 spring:
   config:
        import: optional:classpath:application-local.yml
+  profiles:
+    active: local
   datasource:
     url: jdbc:mysql://localhost:3306/product_db
     username: root
@@ -17,3 +19,10 @@ spring:
     properties:
       hibernate:
         format_sql: true
+app:
+  cors:
+    allowed-origin: http://localhost:4200
+  jwt:
+    secret: SET_IN_LOCAL_FILE
+  internal:
+    api-key: SET_IN_LOCAL_FILE        

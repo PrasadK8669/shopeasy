@@ -21,3 +21,6 @@ spring:
 product:
   service:
     url: http://localhost:8081
+app:
+  internal:
+    api-key: SET_IN_LOCAL_FILE

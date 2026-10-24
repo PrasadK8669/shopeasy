@@ -21,9 +21,18 @@ import com.shopeasy.orderservice.exception.ProductServiceUnavailableException;
 @Component
 public class ProductClient {
 
-    private final RestClient restClient;
+    private static final String INTERNAL_KEY_HEADER = "X-Internal-Key";
 
-    public ProductClient(@Value("${product.service.url}") String baseUrl) {
+    private final RestClient restClient;
+    private final String internalKey;
+
+    public ProductClient(@Value("${product.service.url}") String baseUrl,
+                         @Value("${app.internal.api-key}") String internalKey) {
+        if (internalKey.length() < 32) {
+            throw new IllegalStateException("app.internal.api-key must be at least 32 characters. Set it in application-local.yml.");
+        }
+        this.internalKey = internalKey;
+
         HttpClient httpClient = HttpClient.newBuilder()
                 .version(HttpClient.Version.HTTP_1_1)
                 .connectTimeout(Duration.ofSeconds(2))
@@ -54,6 +63,7 @@ public class ProductClient {
         try {
             restClient.patch()
                     .uri("/api/products/{id}/stock", id)
+                    .header(INTERNAL_KEY_HEADER, internalKey)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(new StockUpdateRequest(quantity))
                     .retrieve()
@@ -66,10 +76,12 @@ public class ProductClient {
             throw new ProductServiceUnavailableException();
         }
     }
-        public void restoreStock(Long id, int quantity) {
+
+    public void restoreStock(Long id, int quantity) {
         try {
             restClient.patch()
                     .uri("/api/products/{id}/stock/restore", id)
+                    .header(INTERNAL_KEY_HEADER, internalKey)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(new StockUpdateRequest(quantity))
                     .retrieve()
