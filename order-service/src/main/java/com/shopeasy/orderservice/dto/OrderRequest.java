@@ -1,16 +1,14 @@
 package com.shopeasy.orderservice.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record OrderRequest(
-        @NotBlank(message = "Customer name is required") String customerName,
-        @NotBlank(message = "Customer email is required")
-        @Email(message = "Customer email must be valid") String customerEmail,
         @NotEmpty(message = "Order must contain at least one item")
+        @Size(max = 50, message = "An order can contain at most 50 different products")
         List<@Valid OrderItemRequest> items) {
 }
