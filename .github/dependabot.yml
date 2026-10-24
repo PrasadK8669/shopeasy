@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: "maven"
+    directory: "/auth-service"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "maven"
+    directory: "/product-service"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "maven"
+    directory: "/order-service"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"

@@ -1,5 +1,6 @@
 package com.shopeasy.productservice.security;
 
+import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
 
@@ -21,6 +22,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -62,6 +64,9 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // safe: the API uses bearer tokens, not cookies
                 .cors(Customizer.withDefaults())
+                .headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'none'; frame-ancestors 'none'"))
+                        .addHeaderWriter(new StaticHeadersWriter("Referrer-Policy", "no-referrer")))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/error").permitAll()
@@ -83,7 +88,10 @@ public class SecurityConfig {
                         .jwt(j -> j.jwtAuthenticationConverter(converter))
                         .authenticationEntryPoint(errors)
                         .accessDeniedHandler(errors))
-                .addFilterBefore(new InternalApiKeyFilter(internalKey), AuthorizationFilter.class);
+                .addFilterBefore(new InternalApiKeyFilter(internalKey), AuthorizationFilter.class)
+                // At most 5 contact messages per 10 minutes from one address
+                .addFilterBefore(new RateLimitFilter("POST", "/api/contact", 5, Duration.ofMinutes(10)),
+                        AuthorizationFilter.class);
 
         return http.build();
     }
@@ -100,7 +108,7 @@ public class SecurityConfig {
         return source;
     }
 
-        private static SecretKey secretKey(String secret) {
+    private static SecretKey secretKey(String secret) {
         String value = secret == null ? "" : secret.trim();
         byte[] bytes;
         try {

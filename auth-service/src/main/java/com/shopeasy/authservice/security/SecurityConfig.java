@@ -1,5 +1,6 @@
 package com.shopeasy.authservice.security;
 
+import java.time.Duration;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +12,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -28,10 +31,16 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // safe: no cookies, the API uses bearer tokens
                 .cors(Customizer.withDefaults())
+                .headers(headers -> headers
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'none'; frame-ancestors 'none'"))
+                        .referrerPolicy(ref -> ref.policy(ReferrerPolicy.NO_REFERRER)))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().denyAll());
+                        .anyRequest().denyAll())
+                // At most 20 sign-in or register calls per minute from one address
+                .addFilterBefore(new RateLimitFilter("POST", "/api/auth/", 20, Duration.ofMinutes(1)),
+                        AuthorizationFilter.class);
         return http.build();
     }
 

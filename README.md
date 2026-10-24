@@ -108,7 +108,7 @@ shopeasy/
 
 ### Prerequisites
 
-- Java 17 or later
+- Java 25 or later
 - Maven 3.8+
 - Node.js 18+ and npm
 - Angular CLI (`npm install -g @angular/cli`)

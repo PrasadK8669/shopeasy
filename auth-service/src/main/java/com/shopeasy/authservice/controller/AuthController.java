@@ -10,8 +10,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.shopeasy.authservice.dto.AuthResponse;
 import com.shopeasy.authservice.dto.LoginRequest;
 import com.shopeasy.authservice.dto.RegisterRequest;
+import com.shopeasy.authservice.exception.InvalidCredentialsException;
+import com.shopeasy.authservice.exception.TooManyRequestsException;
+import com.shopeasy.authservice.security.LoginThrottle;
 import com.shopeasy.authservice.service.AuthService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
@@ -19,9 +23,11 @@ import jakarta.validation.Valid;
 public class AuthController {
 
     private final AuthService authService;
+    private final LoginThrottle loginThrottle;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, LoginThrottle loginThrottle) {
         this.authService = authService;
+        this.loginThrottle = loginThrottle;
     }
 
     @PostMapping("/register")
@@ -30,7 +36,21 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@Valid @RequestBody LoginRequest request) {
-        return authService.login(request);
+    public AuthResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest http) {
+        // The same lock applies whether or not the email exists, so lockouts reveal nothing
+        String key = http.getRemoteAddr() + "|" + request.email().trim().toLowerCase();
+
+        long wait = loginThrottle.retryAfterSeconds(key);
+        if (wait > 0) {
+            throw new TooManyRequestsException(wait);
+        }
+        try {
+            AuthResponse response = authService.login(request);
+            loginThrottle.recordSuccess(key);
+            return response;
+        } catch (InvalidCredentialsException e) {
+            loginThrottle.recordFailure(key);
+            throw e;
+        }
     }
 }
