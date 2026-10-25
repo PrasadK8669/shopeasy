@@ -10,6 +10,7 @@ import com.shopeasy.orderservice.entity.OrderItem;
 import com.shopeasy.orderservice.entity.OrderStatus;
 import com.shopeasy.orderservice.exception.InsufficientStockException;
 import com.shopeasy.orderservice.exception.OrderNotFoundException;
+import com.shopeasy.orderservice.notification.OrderNotifier;
 import com.shopeasy.orderservice.repository.OrderRepository;
 import com.shopeasy.orderservice.security.CurrentUser;
 import java.math.BigDecimal;
@@ -33,10 +34,13 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductClient productClient;
+    private final OrderNotifier orderNotifier;
 
-    public OrderService(OrderRepository orderRepository, ProductClient productClient) {
+    public OrderService(OrderRepository orderRepository, ProductClient productClient,
+                        OrderNotifier orderNotifier) {
         this.orderRepository = orderRepository;
         this.productClient = productClient;
+        this.orderNotifier = orderNotifier;
     }
 
     public OrderResponse placeOrder(OrderRequest request, CurrentUser user) {
@@ -60,7 +64,8 @@ public class OrderService {
             products.put(entry.getKey(), product);
         }
 
-        // 3. Reduce the stock (atomic in Product Service). Undo it if anything fails afterwards.
+        // 3. Reduce the stock (atomic in Product Service). Undo it if saving the order fails.
+        OrderResponse response;
         List<Reduction> reduced = new ArrayList<>();
         try {
             for (Map.Entry<Long, Integer> entry : quantities.entrySet()) {
@@ -68,10 +73,23 @@ public class OrderService {
                 reduced.add(new Reduction(entry.getKey(), entry.getValue()));
             }
             Order order = buildOrder(user, quantities, products);
-            return OrderResponse.from(orderRepository.save(order));
+            response = OrderResponse.from(orderRepository.save(order));
         } catch (RuntimeException e) {
             restoreStock(reduced);
             throw e;
+        }
+
+        // 4. The order is saved. Queue the confirmation email. This is outside the try block above
+        //    on purpose: a notification problem must never undo a saved order's stock.
+        notifyQuietly(response);
+        return response;
+    }
+
+    private void notifyQuietly(OrderResponse response) {
+        try {
+            orderNotifier.orderPlaced(response);
+        } catch (RuntimeException e) {
+            log.warn("Could not queue the confirmation email for order {}", response.id(), e);
         }
     }
 

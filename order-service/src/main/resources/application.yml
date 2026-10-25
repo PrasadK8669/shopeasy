@@ -1,13 +1,14 @@
 server:
   port: 8082
+  
 
 spring:
   config:
-       import: optional:classpath:application-local.yml
+    import: optional:classpath:application-local.yml
   datasource:
     url: jdbc:mysql://localhost:3306/order_db
     username: root
-    password: YourPasswordHere
+    password: YOUR_PASSWORD
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -17,14 +18,33 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ""
+    password: ""
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
 product:
   service:
     url: http://localhost:8081
+
 app:
   cors:
-    allowed-origin : http://localhost:4200
+    allowed-origin: http://localhost:4200
   jwt:
-    secret : SET_IN_LOCAL_FILE
+    secret: SET_IN_LOCAL_FILE
   internal:
     api-key: SET_IN_LOCAL_FILE
+  mail:
+    mode: smtp
+    from: ""
