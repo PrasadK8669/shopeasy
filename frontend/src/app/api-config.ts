@@ -17,3 +17,35 @@ export function isProtectedUrl(url: string): boolean {
 export function safeReturnUrl(url: string | null): string {
   return url && url.startsWith('/') && !url.startsWith('//') ? url : '/';
 }
+
+const DEVICE_KEY = 'shopeasy.device';
+const DEVICE_ID_FORMAT = /^[A-Za-z0-9-]{16,64}$/;
+let memoryDeviceId: string | null = null;
+
+function newDeviceId(): string {
+  const c = globalThis.crypto;
+  if (typeof c.randomUUID === 'function') {
+    return c.randomUUID();
+  }
+  // Older or non-secure contexts: build a random id from random bytes
+  const bytes = new Uint8Array(16);
+  c.getRandomValues(bytes);
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// A random id that stays on this browser. The server stores only its hash, to spot new devices.
+export function getDeviceId(): string {
+  try {
+    const stored = localStorage.getItem(DEVICE_KEY);
+    if (stored && DEVICE_ID_FORMAT.test(stored)) {
+      return stored;
+    }
+    const id = newDeviceId();
+    localStorage.setItem(DEVICE_KEY, id);
+    return id;
+  } catch {
+    // Storage blocked: use an id that lasts until the page is reloaded
+    memoryDeviceId ??= newDeviceId();
+    return memoryDeviceId;
+  }
+}

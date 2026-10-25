@@ -3,7 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { AUTH_API, isProtectedUrl } from '../api-config';
-import { AuthResponse, AuthUser, LoginRequest, MessageResponse, RegisterRequest, RegisterResponse, Session } from '../models/auth';
+import { AuthResponse, AuthUser, LoginRequest, LoginResponse, MessageResponse, RegisterRequest, RegisterResponse, Session } from '../models/auth';
 
 const STORAGE_KEY = 'shopeasy.session';
 
@@ -15,6 +15,8 @@ export class AuthService {
 
   private readonly _session = signal<Session | null>(this.readStored());
 
+       // Held in memory only (never in the URL or storage) between the password step and the code step
+  readonly pendingMfa = signal<{ challengeToken: string; maskedEmail: string } | null>(null);
   readonly user = computed<AuthUser | null>(() => this._session()?.user ?? null);
   readonly isLoggedIn = computed(() => this._session() !== null);
   readonly isAdmin = computed(() => this._session()?.user.role === 'ADMIN');
@@ -23,9 +25,41 @@ export class AuthService {
     this.scheduleExpiry();
   }
 
-  login(request: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${AUTH_API}/login`, request).pipe(tap(res => this.start(res)));
-  }
+  login(request: LoginRequest): Observable<LoginResponse> {
+       return this.http.post<LoginResponse>(`${AUTH_API}/login`, request).pipe(
+         tap(res => {
+           if (res.mfaRequired && res.challengeToken) {
+             this.pendingMfa.set({ challengeToken: res.challengeToken, maskedEmail: res.maskedEmail ?? '' });
+           } else if (res.token && res.user) {
+             this.start({
+               token: res.token,
+               tokenType: res.tokenType ?? 'Bearer',
+               expiresInSeconds: res.expiresInSeconds ?? 0,
+               user: res.user,
+             });
+           }
+         })
+       );
+     }
+
+  verifyLogin(code: string): Observable<AuthResponse> {
+       const challengeToken = this.pendingMfa()?.challengeToken ?? '';
+       return this.http.post<AuthResponse>(`${AUTH_API}/login/verify`, { challengeToken, code }).pipe(
+         tap(res => {
+           this.pendingMfa.set(null);
+           this.start(res);
+         })
+       );
+     }
+
+  resendLoginCode(): Observable<MessageResponse> {
+       const challengeToken = this.pendingMfa()?.challengeToken ?? '';
+       return this.http.post<MessageResponse>(`${AUTH_API}/login/resend`, { challengeToken });
+     }
+
+  clearPendingMfa(): void {
+       this.pendingMfa.set(null);
+     }
 
        // Registering no longer signs you in. You must verify your email first.
   register(request: RegisterRequest): Observable<RegisterResponse> {

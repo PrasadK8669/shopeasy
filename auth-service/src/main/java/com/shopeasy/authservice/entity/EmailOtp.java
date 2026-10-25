@@ -25,7 +25,7 @@ public class EmailOtp {
     private Long userId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, length = 30, columnDefinition = "varchar(30)")
     private OtpPurpose purpose;
 
     @Column(nullable = false, length = 100)

@@ -1,0 +1,11 @@
+.auth { max-width: 460px; margin: 24px auto; }
+.auth h1 { margin-bottom: 6px; }
+.intro { margin-bottom: 20px; }
+.code { letter-spacing: 0.4em; font-size: 22px; text-align: center; font-variant-numeric: tabular-nums; }
+.alert { margin-bottom: 16px; }
+.info { margin-bottom: 16px; font-size: 14px; color: var(--ok); }
+.resend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 18px; font-size: 14px; }
+.resend .btn-text:hover:not(:disabled) { color: var(--ink); }
+.resend .btn:disabled { box-shadow: none; }
+.switch { margin-top: 14px; text-align: center; }
+.switch .btn-text:hover { color: var(--ink); }

@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.shopeasy.authservice.dto.AuthResponse;
 import com.shopeasy.authservice.dto.ForgotPasswordRequest;
 import com.shopeasy.authservice.dto.LoginRequest;
+import com.shopeasy.authservice.dto.LoginResendRequest;
+import com.shopeasy.authservice.dto.LoginResponse;
+import com.shopeasy.authservice.dto.LoginVerifyRequest;
 import com.shopeasy.authservice.dto.MessageResponse;
 import com.shopeasy.authservice.dto.RegisterRequest;
 import com.shopeasy.authservice.dto.RegisterResponse;
@@ -18,6 +21,7 @@ import com.shopeasy.authservice.dto.ResetPasswordRequest;
 import com.shopeasy.authservice.dto.VerifyEmailRequest;
 import com.shopeasy.authservice.exception.InvalidCredentialsException;
 import com.shopeasy.authservice.exception.TooManyRequestsException;
+import com.shopeasy.authservice.security.ClientInfo;
 import com.shopeasy.authservice.security.LoginThrottle;
 import com.shopeasy.authservice.service.AuthService;
 
@@ -42,8 +46,8 @@ public class AuthController {
     }
 
     @PostMapping("/verify-email")
-    public AuthResponse verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
-        return authService.verifyEmail(request);
+    public AuthResponse verifyEmail(@Valid @RequestBody VerifyEmailRequest request, HttpServletRequest http) {
+        return authService.verifyEmail(request, ClientInfo.from(http));
     }
 
     @PostMapping("/resend-otp")
@@ -65,7 +69,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest http) {
+    public LoginResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest http) {
         // The same lock applies whether or not the email exists, so lockouts reveal nothing
         String key = http.getRemoteAddr() + "|" + request.email().trim().toLowerCase();
 
@@ -74,12 +78,23 @@ public class AuthController {
             throw new TooManyRequestsException(wait);
         }
         try {
-            AuthResponse response = authService.login(request);
+            LoginResponse response = authService.login(request, ClientInfo.from(http));
             loginThrottle.recordSuccess(key);
             return response;
         } catch (InvalidCredentialsException e) {
             loginThrottle.recordFailure(key);
             throw e;
         }
+    }
+
+    @PostMapping("/login/verify")
+    public AuthResponse verifyLogin(@Valid @RequestBody LoginVerifyRequest request, HttpServletRequest http) {
+        return authService.verifyLogin(request, ClientInfo.from(http));
+    }
+
+    @PostMapping("/login/resend")
+    public MessageResponse resendLoginCode(@Valid @RequestBody LoginResendRequest request) {
+        authService.resendLoginCode(request);
+        return new MessageResponse("If your sign-in session is still valid, a new code has been sent.");
     }
 }

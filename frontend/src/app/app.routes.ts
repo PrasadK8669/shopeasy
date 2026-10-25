@@ -4,6 +4,7 @@ import { Cart } from './components/cart/cart';
 import { Checkout } from './components/checkout/checkout';
 import { Contact } from './components/contact/contact';
 import { Login } from './components/login/login';
+import { LoginVerify } from './components/login-verify/login-verify';
 import { ForgotPassword } from './components/forgot-password/forgot-password';
 import { ResetPassword } from './components/reset-password/reset-password';
 import { OrderHistory } from './components/order-history/order-history';
@@ -20,6 +21,7 @@ export const routes: Routes = [
   { path: 'orders', component: OrderHistory, canActivate: [authGuard] },
   { path: 'contact', component: Contact },
   { path: 'login', component: Login, canActivate: [guestGuard] },
+  { path: 'login/verify', component: LoginVerify, canActivate: [guestGuard] },
   { path: 'register', component: Register, canActivate: [guestGuard] },
   { path: 'forgot-password', component: ForgotPassword, canActivate: [guestGuard] },
   { path: 'reset-password', component: ResetPassword, canActivate: [guestGuard] },

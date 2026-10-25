@@ -3,6 +3,9 @@ package com.shopeasy.authservice.service;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -11,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.shopeasy.authservice.dto.AuthResponse;
 import com.shopeasy.authservice.dto.ForgotPasswordRequest;
 import com.shopeasy.authservice.dto.LoginRequest;
+import com.shopeasy.authservice.dto.LoginResendRequest;
+import com.shopeasy.authservice.dto.LoginResponse;
+import com.shopeasy.authservice.dto.LoginVerifyRequest;
 import com.shopeasy.authservice.dto.RegisterRequest;
 import com.shopeasy.authservice.dto.RegisterResponse;
 import com.shopeasy.authservice.dto.ResendOtpRequest;
@@ -22,30 +28,44 @@ import com.shopeasy.authservice.entity.Role;
 import com.shopeasy.authservice.entity.User;
 import com.shopeasy.authservice.exception.EmailAlreadyUsedException;
 import com.shopeasy.authservice.exception.EmailNotVerifiedException;
+import com.shopeasy.authservice.exception.InvalidChallengeException;
 import com.shopeasy.authservice.exception.InvalidCredentialsException;
 import com.shopeasy.authservice.exception.InvalidOtpException;
 import com.shopeasy.authservice.repository.UserRepository;
+import com.shopeasy.authservice.security.ClientInfo;
 import com.shopeasy.authservice.security.JwtService;
 
 @Service
 public class AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final OtpService otpService;
     private final MailService mailService;
+    private final DeviceService deviceService;
+    private final boolean adminMfaEnabled;
     private final String dummyHash;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-                       JwtService jwtService, OtpService otpService, MailService mailService) {
+                       JwtService jwtService, OtpService otpService, MailService mailService,
+                       DeviceService deviceService,
+                       @Value("${app.mfa.admin-enabled:true}") boolean adminMfaEnabled) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.otpService = otpService;
         this.mailService = mailService;
+        this.deviceService = deviceService;
+        this.adminMfaEnabled = adminMfaEnabled;
         // Used so a login for an unknown email takes as long as one for a real email
         this.dummyHash = passwordEncoder.encode("not-a-real-password-1");
+
+        if (!adminMfaEnabled) {
+            log.warn("app.mfa.admin-enabled is false: admins can sign in with just a password. Emergency use only.");
+        }
     }
 
     @Transactional
@@ -83,7 +103,8 @@ public class AuthService {
         return new RegisterResponse(email, true);
     }
 
-    public AuthResponse login(LoginRequest request) {
+    // Step 1 for admins (password), then a code is emailed. Everyone else is signed in right here.
+    public LoginResponse login(LoginRequest request, ClientInfo client) {
         if (tooLong(request.password())) {
             throw new InvalidCredentialsException();
         }
@@ -100,11 +121,30 @@ public class AuthService {
         if (!user.isEmailVerified()) {
             throw new EmailNotVerifiedException();
         }
-        return toResponse(user);
+
+        if (user.getRole() == Role.ADMIN && adminMfaEnabled) {
+            // May send nothing if a code went out a moment ago. The earlier code still works.
+            otpService.issue(user, OtpPurpose.LOGIN_2FA);
+            return LoginResponse.challenge(jwtService.generateChallenge(user), mask(user.getEmail()));
+        }
+        return LoginResponse.signedIn(completeSignIn(user, client));
     }
 
-    @Transactional(noRollbackFor = InvalidOtpException.class)
-    public AuthResponse verifyEmail(VerifyEmailRequest request) {
+    // Step 2 for admins: the challenge proves the password step passed, the code proves the inbox
+    public AuthResponse verifyLogin(LoginVerifyRequest request, ClientInfo client) {
+        User user = adminFromChallenge(request.challengeToken());
+        otpService.consume(user, OtpPurpose.LOGIN_2FA, request.code());
+        return completeSignIn(user, client);
+    }
+
+    public void resendLoginCode(LoginResendRequest request) {
+        User user = adminFromChallenge(request.challengeToken());
+        otpService.issue(user, OtpPurpose.LOGIN_2FA);
+    }
+
+    // Not transactional on purpose: the code is consumed in its own transaction,
+    // and recording the device must never be able to undo it.
+    public AuthResponse verifyEmail(VerifyEmailRequest request, ClientInfo client) {
         User user = userRepository.findByEmail(normalise(request.email()))
                 .orElseThrow(InvalidOtpException::new);
         if (user.isEmailVerified()) {
@@ -113,7 +153,7 @@ public class AuthService {
         otpService.consume(user, OtpPurpose.EMAIL_VERIFICATION, request.code());
         user.setEmailVerified(true);
         userRepository.save(user);
-        return toResponse(user);
+        return completeSignIn(user, client);
     }
 
     // Always behaves the same for the caller, so it cannot be used to discover which emails exist
@@ -155,10 +195,37 @@ public class AuthService {
         mailService.sendPasswordChangedNotice(user.getEmail(), user.getName());
     }
 
+    private User adminFromChallenge(String challengeToken) {
+        Long userId = jwtService.parseChallenge(challengeToken);
+        return userRepository.findById(userId)
+                .filter(u -> u.getRole() == Role.ADMIN && u.isEmailVerified())
+                .orElseThrow(InvalidChallengeException::new);
+    }
+
+    // Records the device (and may send a new-device alert), then issues the real login token.
+    // A problem with device tracking must never stop someone from signing in.
+    private AuthResponse completeSignIn(User user, ClientInfo client) {
+        try {
+            deviceService.recordSignIn(user, client);
+        } catch (RuntimeException e) {
+            log.warn("Could not record the sign-in device for user {}: {}", user.getId(), e.getMessage());
+        }
+        return toResponse(user);
+    }
+
     private AuthResponse toResponse(User user) {
         UserResponse userResponse = new UserResponse(
                 user.getId(), user.getName(), user.getEmail(), user.getRole().name());
         return new AuthResponse(jwtService.generate(user), "Bearer", jwtService.expirySeconds(), userResponse);
+    }
+
+    // p***9@gmail.com
+    private static String mask(String email) {
+        int at = email.indexOf('@');
+        if (at <= 1) {
+            return "***" + email.substring(Math.max(at, 0));
+        }
+        return email.charAt(0) + "***" + email.charAt(at - 1) + email.substring(at);
     }
 
     private static String normalise(String email) {

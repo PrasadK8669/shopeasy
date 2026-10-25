@@ -18,7 +18,6 @@ import com.shopeasy.authservice.repository.EmailOtpRepository;
 public class OtpService {
 
     private static final SecureRandom RANDOM = new SecureRandom();
-    private static final long EXPIRY_MINUTES = 10;
     private static final int MAX_ATTEMPTS = 5;
     private static final long COOLDOWN_SECONDS = 60;
     private static final int MAX_SENDS_PER_HOUR = 5;
@@ -34,10 +33,16 @@ public class OtpService {
         this.mailService = mailService;
     }
 
+    // Sign-in codes are short-lived. Sign-up and reset codes live a little longer.
+    private static long expiryMinutes(OtpPurpose purpose) {
+        return purpose == OtpPurpose.LOGIN_2FA ? 5 : 10;
+    }
+
     // Creates and emails a fresh code. Returns false (and sends nothing) if asked too soon or too often.
     @Transactional
     public boolean issue(User user, OtpPurpose purpose) {
         Instant now = Instant.now();
+        long expiry = expiryMinutes(purpose);
         EmailOtp otp = otpRepository.findByUserIdAndPurpose(user.getId(), purpose)
                 .orElseGet(() -> new EmailOtp(user.getId(), purpose));
 
@@ -54,17 +59,17 @@ public class OtpService {
 
         String code = String.format("%06d", RANDOM.nextInt(1_000_000));
         otp.setCodeHash(passwordEncoder.encode(code)); // only the hash is stored
-        otp.setExpiresAt(now.plus(EXPIRY_MINUTES, ChronoUnit.MINUTES));
+        otp.setExpiresAt(now.plus(expiry, ChronoUnit.MINUTES));
         otp.setAttempts(0);
         otp.setLastSentAt(now);
         otp.setSentCount(otp.getSentCount() + 1);
         otpRepository.save(otp);
 
-        if (purpose == OtpPurpose.PASSWORD_RESET) {
-            mailService.sendResetCode(user.getEmail(), user.getName(), (int) EXPIRY_MINUTES, code); // background
-        } else {
-            // If the email cannot be sent, this throws and the whole transaction rolls back
-            mailService.sendVerificationCode(user.getEmail(), user.getName(), (int) EXPIRY_MINUTES, code);
+        switch (purpose) {
+            case PASSWORD_RESET -> mailService.sendResetCode(user.getEmail(), user.getName(), (int) expiry, code); // background
+            // These two throw if the email cannot be sent, which rolls the whole transaction back
+            case LOGIN_2FA -> mailService.sendLoginCode(user.getEmail(), user.getName(), (int) expiry, code);
+            case EMAIL_VERIFICATION -> mailService.sendVerificationCode(user.getEmail(), user.getName(), (int) expiry, code);
         }
         return true;
     }

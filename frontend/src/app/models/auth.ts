@@ -36,3 +36,12 @@ export interface RegisterResponse {
 export interface MessageResponse {
   message: string;
 }
+export interface LoginResponse {
+  mfaRequired: boolean;
+  token?: string | null;
+  tokenType?: string | null;
+  expiresInSeconds?: number | null;
+  user?: AuthUser | null;
+  challengeToken?: string | null;
+  maskedEmail?: string | null;
+}

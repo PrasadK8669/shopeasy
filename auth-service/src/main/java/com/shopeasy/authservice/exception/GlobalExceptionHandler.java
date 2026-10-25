@@ -1,13 +1,15 @@
 package com.shopeasy.authservice.exception;
 
-import com.shopeasy.authservice.dto.ErrorResponse;
 import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import com.shopeasy.authservice.dto.ErrorResponse;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -60,6 +62,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleUnreadableBody(HttpMessageNotReadableException ex) {
         return build(HttpStatus.BAD_REQUEST, "Request body is missing or not valid JSON", null);
+    }
+    @ExceptionHandler(InvalidChallengeException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidChallenge(InvalidChallengeException ex) {
+        return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), "MFA_SESSION_EXPIRED");
     }
 
     private ResponseEntity<ErrorResponse> build(HttpStatus status, String message, String code) {

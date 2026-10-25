@@ -1,5 +1,10 @@
 package com.shopeasy.authservice.service;
 
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,17 +20,22 @@ import com.shopeasy.authservice.exception.EmailDeliveryException;
 public class MailService {
 
     private static final Logger log = LoggerFactory.getLogger(MailService.class);
+    private static final DateTimeFormatter TIME =
+            DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm 'UTC'", Locale.ENGLISH).withZone(ZoneOffset.UTC);
 
     private final JavaMailSender sender;
     private final String mode;
     private final String from;
+    private final String frontendUrl;
 
     public MailService(JavaMailSender sender,
                        @Value("${app.mail.mode:smtp}") String mode,
-                       @Value("${app.mail.from:}") String from) {
+                       @Value("${app.mail.from:}") String from,
+                       @Value("${app.cors.allowed-origin}") String frontendUrl) {
         this.sender = sender;
         this.mode = mode.trim().toLowerCase();
         this.from = from.trim();
+        this.frontendUrl = frontendUrl;
 
         switch (this.mode) {
             case "log" -> log.warn("app.mail.mode is 'log': emails are printed to this console and NOT sent. Development only.");
@@ -48,6 +58,17 @@ public class MailService {
         send(to, "Your ShopEasy verification code", body);
     }
 
+    // Admin sign-in code. Throws if it cannot be sent, so the admin sees the problem.
+    public void sendLoginCode(String to, String name, int expiryMinutes, String code) {
+        String body = "Hi " + name + ",\n\n"
+                + "Your ShopEasy sign-in code is: " + code + "\n\n"
+                + "It expires in " + expiryMinutes + " minutes.\n\n"
+                + "If you did not just try to sign in, someone may know your password. Reset it right away: "
+                + frontendUrl + "/forgot-password\n\n"
+                + "Never share this code with anyone. ShopEasy will never ask for it.";
+        send(to, "Your ShopEasy sign-in code", body);
+    }
+
     // Runs in the background, so the response time does not reveal whether an account exists
     @Async("mailExecutor")
     public void sendResetCode(String to, String name, int expiryMinutes, String code) {
@@ -64,6 +85,18 @@ public class MailService {
                 + "The password for your ShopEasy account was just changed.\n\n"
                 + "If this was you, no action is needed. If it was not you, reset your password again right away and contact us.";
         sendQuietly(to, "Your ShopEasy password was changed", body);
+    }
+
+    @Async("mailExecutor")
+    public void sendNewSignInAlert(String to, String name, String device, String ip, Instant when) {
+        String body = "Hi " + name + ",\n\n"
+                + "Your ShopEasy account was just signed in to from a device we have not seen before.\n\n"
+                + "Device: " + device + "\n"
+                + "IP address: " + (ip == null ? "unknown" : ip) + "\n"
+                + "Time: " + TIME.format(when) + "\n\n"
+                + "If this was you, no action is needed.\n"
+                + "If it was not you, reset your password right away: " + frontendUrl + "/forgot-password\n";
+        sendQuietly(to, "New sign-in to your ShopEasy account", body);
     }
 
     private void sendQuietly(String to, String subject, String body) {

@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
-import { API_ORIGINS, isProtectedUrl } from '../api-config';
+import { API_ORIGINS, AUTH_API, getDeviceId, isProtectedUrl } from '../api-config';
 import { AuthService } from '../services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
@@ -12,7 +12,15 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   // Only attach the token to our own APIs, never to another site
   const isOurApi = API_ORIGINS.some(origin => req.url.startsWith(origin));
   const token = isOurApi ? auth.token() : null;
-  const outgoing = token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
+
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  if (req.url.startsWith(AUTH_API)) {
+    headers['X-Device-Id'] = getDeviceId(); // lets the server recognise this browser
+  }
+  const outgoing = Object.keys(headers).length > 0 ? req.clone({ setHeaders: headers }) : req;
 
   return next(outgoing).pipe(
     catchError((err: HttpErrorResponse) => {

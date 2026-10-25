@@ -1,0 +1,44 @@
+<div class="auth">
+  <div class="panel">
+    <h1>Second step</h1>
+    <p class="muted intro">
+      Admin accounts need a code as well as a password. We sent a 6-digit code to
+      <strong>{{ maskedEmail }}</strong>. It expires in 5 minutes.
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="field">
+        <label for="code">Sign-in code</label>
+        <input id="code" class="input code" type="text" formControlName="code"
+               inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456"
+               (input)="onCodeInput($event)" />
+        @if (code.invalid && code.touched) {
+          <span class="field-error">Enter the 6-digit code from the email.</span>
+        }
+      </div>
+
+      @if (error()) {
+        <div class="alert alert-error" role="alert">{{ error() }}</div>
+      }
+      @if (info()) {
+        <p class="info" role="status">{{ info() }}</p>
+      }
+
+      <button type="submit" class="btn btn-primary full" [disabled]="submitting()">
+        {{ submitting() ? 'Verifying...' : 'Sign in' }}
+      </button>
+    </form>
+
+    <div class="resend">
+      <span class="muted">Did not get it? Check your spam folder, or</span>
+      <button type="button" class="btn btn-text btn-sm" (click)="resend()"
+              [disabled]="cooldown() > 0 || resending()">
+        {{ cooldown() > 0 ? 'send a new code in ' + cooldown() + 's' : 'send a new code' }}
+      </button>
+    </div>
+
+    <p class="switch">
+      <button type="button" class="btn btn-text btn-sm" (click)="cancel()">Back to sign in</button>
+    </p>
+  </div>
+</div>

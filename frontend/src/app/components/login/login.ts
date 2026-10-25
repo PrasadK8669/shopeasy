@@ -50,9 +50,13 @@ export class Login {
     this.error.set('');
 
     this.auth.login(this.form.getRawValue()).subscribe({
-      next: () => {
+            next: res => {
         this.submitting.set(false);
-        this.router.navigateByUrl(this.returnUrl);
+        if (res.mfaRequired) {
+          this.router.navigate(['/login/verify'], { queryParams: this.returnParams });
+        } else {
+          this.router.navigateByUrl(this.returnUrl);
+        }
       },
       error: (err: HttpErrorResponse) => {
                 if (err.status === 403 && err.error?.code === 'EMAIL_NOT_VERIFIED') {
