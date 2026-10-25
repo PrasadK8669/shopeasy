@@ -82,9 +82,9 @@ export class Register {
 
     const { name, email, password } = this.form.getRawValue();
     this.auth.register({ name, email, password }).subscribe({
-      next: () => {
-        this.submitting.set(false);
-        this.router.navigateByUrl(this.returnUrl); // registering also signs you in
+        next: res => {
+          this.submitting.set(false);
+          this.router.navigate(['/verify'], { queryParams: { email: res.email, ...this.returnParams } });
       },
       error: (err: HttpErrorResponse) => {
         this.error.set(

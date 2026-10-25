@@ -54,6 +54,13 @@ export class Login {
         this.router.navigateByUrl(this.returnUrl);
       },
       error: (err: HttpErrorResponse) => {
+                if (err.status === 403 && err.error?.code === 'EMAIL_NOT_VERIFIED') {
+          this.submitting.set(false);
+          this.router.navigate(['/verify'], {
+            queryParams: { email: this.email.value.trim(), notice: 'unverified', ...this.returnParams },
+          });
+          return;
+        }
         this.error.set(
           err.status === 0
             ? 'Cannot reach the login service. Check that auth-service is running on port 8083.'

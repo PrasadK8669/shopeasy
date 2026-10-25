@@ -3,7 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { AUTH_API, isProtectedUrl } from '../api-config';
-import { AuthResponse, AuthUser, LoginRequest, RegisterRequest, Session } from '../models/auth';
+import { AuthResponse, AuthUser, LoginRequest, MessageResponse, RegisterRequest, RegisterResponse, Session } from '../models/auth';
 
 const STORAGE_KEY = 'shopeasy.session';
 
@@ -27,9 +27,20 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${AUTH_API}/login`, request).pipe(tap(res => this.start(res)));
   }
 
-  register(request: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${AUTH_API}/register`, request).pipe(tap(res => this.start(res)));
-  }
+       // Registering no longer signs you in. You must verify your email first.
+  register(request: RegisterRequest): Observable<RegisterResponse> {
+       return this.http.post<RegisterResponse>(`${AUTH_API}/register`, request);
+     }
+
+  verifyEmail(email: string, code: string): Observable<AuthResponse> {
+       return this.http
+         .post<AuthResponse>(`${AUTH_API}/verify-email`, { email, code })
+         .pipe(tap(res => this.start(res)));
+     }
+
+  resendCode(email: string): Observable<MessageResponse> {
+       return this.http.post<MessageResponse>(`${AUTH_API}/resend-otp`, { email });
+     }
 
   // Returns the token, or null if there is none or it has expired
   token(): string | null {

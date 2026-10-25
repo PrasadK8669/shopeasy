@@ -28,3 +28,11 @@ export interface Session {
   expiresAt: number;
   user: AuthUser;
 }
+export interface RegisterResponse {
+  email: string;
+  verificationRequired: boolean;
+}
+
+export interface MessageResponse {
+  message: string;
+}

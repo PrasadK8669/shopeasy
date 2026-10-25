@@ -58,4 +58,10 @@ public class User {
     public void setRole(Role role) { this.role = role; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
+
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified;
+
+    public boolean isEmailVerified() { return emailVerified; }
+    public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
 }

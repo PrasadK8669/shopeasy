@@ -1,3 +1,4 @@
+import { Verify } from './components/verify/verify';
 import { Routes } from '@angular/router';
 import { Cart } from './components/cart/cart';
 import { Checkout } from './components/checkout/checkout';
@@ -18,5 +19,6 @@ export const routes: Routes = [
   { path: 'contact', component: Contact },
   { path: 'login', component: Login, canActivate: [guestGuard] },
   { path: 'register', component: Register, canActivate: [guestGuard] },
+  { path: 'verify', component: Verify, canActivate: [guestGuard] },
   { path: '**', redirectTo: '' },
 ];
