@@ -1,5 +1,5 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CategoryCount, Product } from '../../models/product';
 import { CartService } from '../../services/cart.service';
@@ -17,8 +17,9 @@ interface PriceRange {
   imports: [CurrencyPipe, RouterLink],
   templateUrl: './product-list.html',
   styleUrl: './product-list.css',
+  host: { '(document:keydown.escape)': 'closeFilters()' },
 })
-export class ProductList implements OnInit {
+export class ProductList implements OnInit, OnDestroy {
   private productService = inject(ProductService);
   private cart = inject(CartService);
 
@@ -53,6 +54,10 @@ export class ProductList implements OnInit {
   addedId = signal<number | null>(null);
   brokenImages = signal<number[]>([]);
 
+  // Used to move keyboard focus into the drawer and back out again
+  menuButton = viewChild<ElementRef<HTMLButtonElement>>('menuBtn');
+  closeButton = viewChild<ElementRef<HTMLButtonElement>>('closeBtn');
+
   totalAll = computed(() => this.categories().reduce((sum, c) => sum + c.count, 0));
 
   activeFilters = computed(
@@ -69,6 +74,10 @@ export class ProductList implements OnInit {
       error: () => this.categories.set([]),
     });
     this.load();
+  }
+
+  ngOnDestroy(): void {
+    document.body.style.overflow = ''; // never leave the page locked
   }
 
   load(): void {
@@ -149,8 +158,40 @@ export class ProductList implements OnInit {
     this.reload();
   }
 
-  toggleFilters(): void {
-    this.filtersOpen.update(v => !v);
+  openFilters(): void {
+    this.filtersOpen.set(true);
+    document.body.style.overflow = 'hidden'; // stop the page behind from scrolling
+    setTimeout(() => this.closeButton()?.nativeElement.focus());
+  }
+
+  closeFilters(): void {
+    if (!this.filtersOpen()) {
+      return;
+    }
+    this.filtersOpen.set(false);
+    document.body.style.overflow = '';
+    setTimeout(() => this.menuButton()?.nativeElement.focus());
+  }
+
+  // Keeps Tab and Shift+Tab inside the open drawer
+  trapFocus(event: KeyboardEvent): void {
+    if (event.key !== 'Tab') {
+      return;
+    }
+    const drawer = event.currentTarget as HTMLElement;
+    const focusable = drawer.querySelectorAll<HTMLElement>('button:not([disabled]), [href], input, select');
+    if (focusable.length === 0) {
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   }
 
   prev(): void {
