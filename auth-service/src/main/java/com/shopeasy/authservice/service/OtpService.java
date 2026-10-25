@@ -1,16 +1,18 @@
 package com.shopeasy.authservice.service;
 
-import com.shopeasy.authservice.entity.EmailOtp;
-import com.shopeasy.authservice.entity.User;
-import com.shopeasy.authservice.exception.InvalidOtpException;
-import com.shopeasy.authservice.repository.EmailOtpRepository;
-import com.shopeasy.authservice.repository.UserRepository;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.shopeasy.authservice.entity.EmailOtp;
+import com.shopeasy.authservice.entity.OtpPurpose;
+import com.shopeasy.authservice.entity.User;
+import com.shopeasy.authservice.exception.InvalidOtpException;
+import com.shopeasy.authservice.repository.EmailOtpRepository;
 
 @Service
 public class OtpService {
@@ -22,23 +24,22 @@ public class OtpService {
     private static final int MAX_SENDS_PER_HOUR = 5;
 
     private final EmailOtpRepository otpRepository;
-    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final MailService mailService;
 
-    public OtpService(EmailOtpRepository otpRepository, UserRepository userRepository,
-                      PasswordEncoder passwordEncoder, MailService mailService) {
+    public OtpService(EmailOtpRepository otpRepository, PasswordEncoder passwordEncoder,
+                      MailService mailService) {
         this.otpRepository = otpRepository;
-        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.mailService = mailService;
     }
 
     // Creates and emails a fresh code. Returns false (and sends nothing) if asked too soon or too often.
     @Transactional
-    public boolean issue(User user) {
+    public boolean issue(User user, OtpPurpose purpose) {
         Instant now = Instant.now();
-        EmailOtp otp = otpRepository.findByUserId(user.getId()).orElseGet(() -> new EmailOtp(user.getId()));
+        EmailOtp otp = otpRepository.findByUserIdAndPurpose(user.getId(), purpose)
+                .orElseGet(() -> new EmailOtp(user.getId(), purpose));
 
         if (otp.getLastSentAt() != null && now.isBefore(otp.getLastSentAt().plusSeconds(COOLDOWN_SECONDS))) {
             return false;
@@ -59,16 +60,22 @@ public class OtpService {
         otp.setSentCount(otp.getSentCount() + 1);
         otpRepository.save(otp);
 
-        // If the email cannot be sent, this throws and the whole transaction rolls back
-        mailService.sendOtp(user.getEmail(), user.getName(), (int) EXPIRY_MINUTES, code);
+        if (purpose == OtpPurpose.PASSWORD_RESET) {
+            mailService.sendResetCode(user.getEmail(), user.getName(), (int) EXPIRY_MINUTES, code); // background
+        } else {
+            // If the email cannot be sent, this throws and the whole transaction rolls back
+            mailService.sendVerificationCode(user.getEmail(), user.getName(), (int) EXPIRY_MINUTES, code);
+        }
         return true;
     }
 
-    // noRollbackFor: a wrong guess must still be saved, or the attempt counter would never grow
+    // Checks the code and, if it is right, deletes it so it can only be used once.
+    // noRollbackFor: a wrong guess must still be saved, or the attempt counter would never grow.
     @Transactional(noRollbackFor = InvalidOtpException.class)
-    public void verify(User user, String code) {
+    public void consume(User user, OtpPurpose purpose, String code) {
         Instant now = Instant.now();
-        EmailOtp otp = otpRepository.findByUserId(user.getId()).orElseThrow(InvalidOtpException::new);
+        EmailOtp otp = otpRepository.findByUserIdAndPurpose(user.getId(), purpose)
+                .orElseThrow(InvalidOtpException::new);
 
         if (now.isAfter(otp.getExpiresAt()) || otp.getAttempts() >= MAX_ATTEMPTS) {
             throw new InvalidOtpException(); // expired or out of tries: the user must request a new code
@@ -78,9 +85,6 @@ public class OtpService {
             otpRepository.save(otp);
             throw new InvalidOtpException();
         }
-
         otpRepository.delete(otp);
-        user.setEmailVerified(true);
-        userRepository.save(user);
     }
 }

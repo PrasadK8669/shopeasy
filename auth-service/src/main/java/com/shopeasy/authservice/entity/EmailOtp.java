@@ -1,23 +1,32 @@
 package com.shopeasy.authservice.entity;
 
+import java.time.Instant;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.Instant;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "email_otps")
+@Table(name = "email_otps",
+        uniqueConstraints = @UniqueConstraint(name = "uk_email_otps_user_purpose", columnNames = {"user_id", "purpose"}))
 public class EmailOtp {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false, unique = true)
+    @Column(name = "user_id", nullable = false)
     private Long userId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private OtpPurpose purpose;
 
     @Column(nullable = false, length = 100)
     private String codeHash;
@@ -36,13 +45,16 @@ public class EmailOtp {
     public EmailOtp() {
     }
 
-    public EmailOtp(Long userId) {
+    public EmailOtp(Long userId, OtpPurpose purpose) {
         this.userId = userId;
+        this.purpose = purpose;
     }
 
     public Long getId() { return id; }
 
     public Long getUserId() { return userId; }
+
+    public OtpPurpose getPurpose() { return purpose; }
 
     public String getCodeHash() { return codeHash; }
     public void setCodeHash(String codeHash) { this.codeHash = codeHash; }

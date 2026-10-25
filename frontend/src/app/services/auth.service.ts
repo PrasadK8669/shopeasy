@@ -41,6 +41,13 @@ export class AuthService {
   resendCode(email: string): Observable<MessageResponse> {
        return this.http.post<MessageResponse>(`${AUTH_API}/resend-otp`, { email });
      }
+  forgotPassword(email: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${AUTH_API}/forgot-password`, { email });
+  }
+
+  resetPassword(email: string, code: string, newPassword: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${AUTH_API}/reset-password`, { email, code, newPassword });
+  }
 
   // Returns the token, or null if there is none or it has expired
   token(): string | null {

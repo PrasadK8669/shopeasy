@@ -30,6 +30,7 @@ export class Login {
   readonly hasReturnUrl = this.route.snapshot.queryParamMap.has('returnUrl');
   readonly expired = this.route.snapshot.queryParamMap.get('reason') === 'expired';
   readonly returnParams = this.hasReturnUrl ? { returnUrl: this.returnUrl } : {};
+  readonly resetDone = this.route.snapshot.queryParamMap.get('reset') === 'done';
 
   get email() {
     return this.form.controls.email;

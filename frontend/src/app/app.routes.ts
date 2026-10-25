@@ -4,6 +4,8 @@ import { Cart } from './components/cart/cart';
 import { Checkout } from './components/checkout/checkout';
 import { Contact } from './components/contact/contact';
 import { Login } from './components/login/login';
+import { ForgotPassword } from './components/forgot-password/forgot-password';
+import { ResetPassword } from './components/reset-password/reset-password';
 import { OrderHistory } from './components/order-history/order-history';
 import { ProductDetail } from './components/product-detail/product-detail';
 import { ProductList } from './components/product-list/product-list';
@@ -19,6 +21,8 @@ export const routes: Routes = [
   { path: 'contact', component: Contact },
   { path: 'login', component: Login, canActivate: [guestGuard] },
   { path: 'register', component: Register, canActivate: [guestGuard] },
+  { path: 'forgot-password', component: ForgotPassword, canActivate: [guestGuard] },
+  { path: 'reset-password', component: ResetPassword, canActivate: [guestGuard] },
   { path: 'verify', component: Verify, canActivate: [guestGuard] },
   { path: '**', redirectTo: '' },
 ];

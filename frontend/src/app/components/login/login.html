@@ -2,11 +2,13 @@
   <div class="panel">
     <h1>Sign in</h1>
 
-    @if (expired) {
-      <p class="notice">Your session expired. Sign in again to continue.</p>
-    } @else if (hasReturnUrl) {
-      <p class="notice">Sign in to continue.</p>
-    }
+      @if (resetDone) {
+        <p class="notice">Your password was updated. Sign in with the new one.</p>
+      } @else if (expired) {
+        <p class="notice">Your session expired. Sign in again to continue.</p>
+      } @else if (hasReturnUrl) {
+        <p class="notice">Sign in to continue.</p>
+      }
 
     <form [formGroup]="form" (ngSubmit)="submit()">
       <div class="field">
@@ -31,6 +33,7 @@
           <span class="field-error">Enter your password.</span>
         }
       </div>
+      <p class="forgot"><a routerLink="/forgot-password">Forgot password?</a></p>
 
       @if (error()) {
         <div class="alert alert-error" role="alert">{{ error() }}</div>
