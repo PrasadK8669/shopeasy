@@ -429,7 +429,7 @@ This is a learning project for local use, not a production deployment.
 ## Credits
 
 - Product photos from [Unsplash](https://unsplash.com) and [Pexels](https://www.pexels.com).
-- Built as a learning project with AI assistance. I reviewed, ran and tested every service.
+- Built as a learning project. I reviewed, ran and tested every service.
 
 ## Author
 
